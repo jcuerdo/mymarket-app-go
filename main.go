@@ -28,13 +28,13 @@ func main() {
 	public.GET("/market", func(c *gin.Context) {
 		db, err := sql.Open("mysql", "root:123456@tcp(127.0.0.1:3306)/database")
 		if err == nil{
-			rows, queryError := db.Query("SELECT id,name,description from market")
+			rows, queryError := db.Query("SELECT id,name,description,startdate,lat, lon from market where active = 1")
 			fmt.Println(queryError)
 			if queryError == nil{
 				var markets []model.Market
 				for rows.Next() {
 					var market model.Market
-					err = rows.Scan(&market.Id, &market.Description, &market.Name)
+					err = rows.Scan(&market.Id, &market.Description, &market.Name, &market.Date, &market.Lat, &market.Lon)
 					markets = append(markets, market)
 					if err != nil {
 						fmt.Print(err.Error())
