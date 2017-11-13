@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 func ValidateToken() gin.HandlerFunc {
@@ -12,6 +13,8 @@ func ValidateToken() gin.HandlerFunc {
 			c.Set("userId", 1)
 			return
 		}
-        c.AbortWithStatus(403)
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "'token' field for authorization is required",
+		})
 	}
 }

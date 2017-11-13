@@ -20,7 +20,7 @@ func GetMarkets() gin.HandlerFunc {
 func GetUserMarkets() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, exists := c.Get("userId")
-		if exists{
+		if  _ , ok := userId.(int) ; exists && ok{
 			marketRepository := database.GetMarketRepository()
 			markets := marketRepository.GetUserMarkets(userId.(int))
 			c.JSON(http.StatusOK, gin.H{
@@ -28,6 +28,9 @@ func GetUserMarkets() gin.HandlerFunc {
 				"count":  len(markets),
 			})
 		}
-		//TODO: USER NOT FOUND
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User ID not set",
+		})
+
 	}
 }
