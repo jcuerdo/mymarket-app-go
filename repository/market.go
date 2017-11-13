@@ -2,14 +2,22 @@ package repository
 
 import (
 	"github.com/jcuerdo/mymarket-app-go/model"
-	"github.com/jcuerdo/mymarket-app-go/database"
 	"log"
 	"database/sql"
 )
 
-func GetMarkets() ([]model.Market) {
-	db := database.GetDatabase()
-	rows, error := db.Query("SELECT id,name,description,startdate,lat, lon FROM market WHERE active = 1")
+type MarketRepository struct {
+	Db *sql.DB
+}
+
+func (marketRepository *MarketRepository)GetUserMarkets(user int) ([]model.Market) {
+	rows, error := 	marketRepository.Db.Query("SELECT id,name,description,startdate,lat, lon FROM market WHERE active = 1 and user_id = ?", user)
+	defer rows.Close()
+	return parseRows(rows, error)
+}
+
+func (marketRepository *MarketRepository)GetMarkets() ([]model.Market) {
+	rows, error := 	marketRepository.Db.Query("SELECT id,name,description,startdate,lat, lon FROM market WHERE active = 1")
 	defer rows.Close()
 	return parseRows(rows, error)
 }
@@ -21,7 +29,7 @@ func parseRows(rows *sql.Rows, error error) []model.Market {
 			market, err := parseRow(rows)
 			if err != nil {
 				log.Fatal(error)
-				panic(error)
+
 			} else {
 				markets = append(markets, market)
 			}

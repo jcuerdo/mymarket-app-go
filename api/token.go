@@ -7,9 +7,9 @@ import (
 func ValidateToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
-		token, exists := query["token"]
+		_, exists := query["token"]
 		if exists{
-			c.Set("userId", token[0])
+			c.Set("userId", 1)
 			return
 		}
         c.AbortWithStatus(403)
