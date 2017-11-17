@@ -7,7 +7,7 @@ import (
 )
 
 func getDatabase() (*sql.DB)  {
-	db, err := sql.Open("mysql", "root:123456@tcp(127.0.0.1:3306)/database")
+	db, err := sql.Open("mysql", "root:123456@tcp(ec2-34-215-191-148.us-west-2.compute.amazonaws.com:3306)/database")
 	if err == nil{
 		return db
 	} else {
