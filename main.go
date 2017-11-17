@@ -14,6 +14,7 @@ func main() {
 	private := router.Group("/private/", api.Cors(), api.ValidateToken())
 
 	private.GET("/market", controller.GetUserMarkets())
+	private.POST("/market/create", controller.AddMarket())
 	public.GET("/market", controller.GetMarkets())
 
 	router.Run(":8080")
