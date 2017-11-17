@@ -7,14 +7,15 @@ import (
 
 func ValidateToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		query := c.Request.URL.Query()
-		_, exists := query["token"]
-		if exists{
+		token := c.Query("token")
+		
+		if token != ""{
 			c.Set("userId", 1)
 			return
 		}
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "'token' field for authorization is required",
 		})
+		c.Abort()
 	}
 }
