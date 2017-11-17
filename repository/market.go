@@ -39,6 +39,22 @@ func (marketRepository *MarketRepository)Create(market model.Market) (bool) {
 	return error == nil
 }
 
+func (marketRepository *MarketRepository) Edit(market model.Market) (bool) {
+	rows, error := 	marketRepository.Db.Query(
+		`
+		UPDATE market SET
+		name = ?, description = ? , startdate = ?,lat = ?,lon = ?
+		WHERE id = ?`,
+		market.Name,
+		market.Description,
+		market.Date,
+		market.Lat,
+		market.Lon,
+		market.Id,)
+	defer rows.Close()
+	return error == nil
+}
+
 func parseRows(rows *sql.Rows, error error) []model.Market {
 	if error == nil {
 		var markets []model.Market
