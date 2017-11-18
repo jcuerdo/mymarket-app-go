@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+
 	router := gin.Default()
 
 	public, private := defineGroups(router)
@@ -19,8 +20,8 @@ func definePublicRoutes(public *gin.RouterGroup) {
 	public.GET("/market/:marketId/photos", controller.GetMarketPhotos())
 	public.GET("/market/:marketId/photo", controller.GetMarketPhoto())
 	public.GET("/market", controller.GetMarkets())
-	public.GET("/user/create", controller.AddUser())
-	public.GET("/user/login", controller.LoginUser())
+	public.POST("/user/create", controller.AddUser())
+	public.POST("/user/login", controller.LoginUser())
 }
 func definePrivateRoutes(private *gin.RouterGroup) {
 	private.GET("/market", controller.GetUserMarkets())

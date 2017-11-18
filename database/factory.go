@@ -27,3 +27,8 @@ func GetPhotoRepository() (repository.PhotoRepository){
 	photoRepository := repository.PhotoRepository{getDatabase()}
 	return photoRepository
 }
+
+func GetUserRepository() (repository.UserRepository){
+	userRepository := repository.UserRepository{getDatabase()}
+	return userRepository
+}

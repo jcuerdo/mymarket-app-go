@@ -2,9 +2,7 @@ package repository
 
 import (
 	"github.com/jcuerdo/mymarket-app-go/model"
-	"log"
 	"database/sql"
-	"os/user"
 )
 
 type UserRepository struct {
@@ -12,7 +10,7 @@ type UserRepository struct {
 }
 
 func (userRepository *UserRepository)GetUser(email string,password string) (model.User) {
-	rows, error := 	userRepository.Db.Query("SELECT id, password, email, fullname, photo,description,role FROM user WHERE email = ? and passwrord = ?", email,password)
+	rows, error := 	userRepository.Db.Query("SELECT id, password, email, fullname, photo,description,role FROM user WHERE email = ? and password = ?", email, password)
 	if error == nil{
 		for rows.Next() {
 			user, err := parseUserRow(rows)
@@ -34,7 +32,7 @@ func (userRepository *UserRepository)CreateToken(userId int,token string) (bool)
 }
 
 
-func (userRepository *PhotoRepository)CreateUser(user model.User) (bool) {
+func (userRepository *UserRepository)CreateUser(user model.User) (bool) {
 	rows, error := 	userRepository.Db.Query(
 		`
 		INSERT INTO user
