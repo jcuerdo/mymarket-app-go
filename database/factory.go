@@ -21,3 +21,9 @@ func GetMarketRepository() (repository.MarketRepository){
 	marketRepository := repository.MarketRepository{getDatabase()}
 	return marketRepository
 }
+
+
+func GetPhotoRepository() (repository.PhotoRepository){
+	photoRepository := repository.PhotoRepository{getDatabase()}
+	return photoRepository
+}

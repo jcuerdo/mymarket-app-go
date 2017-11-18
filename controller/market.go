@@ -73,6 +73,7 @@ func AddMarket() gin.HandlerFunc {
 
 	func EditMarket() gin.HandlerFunc {
 		return func(c *gin.Context) {
+		//TODO Check user is the owner
 		marketRepository := database.GetMarketRepository()
 
 		data, err := ioutil.ReadAll(c.Request.Body)

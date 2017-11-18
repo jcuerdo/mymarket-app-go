@@ -10,13 +10,24 @@ import (
 func main() {
 	router := gin.Default()
 
+	public, private := defineGroups(router)
+	definePrivateRoutes(private)
+	definePublicRoutes(public)
+	router.Run(":8080")
+}
+func definePublicRoutes(public *gin.RouterGroup) {
+	public.GET("/market/:marketId/photos", controller.GetMarketPhotos())
+	public.GET("/market/:marketId/photo", controller.GetMarketPhoto())
+	public.GET("/market", controller.GetMarkets())
+}
+func definePrivateRoutes(private *gin.RouterGroup) {
+	private.GET("/market", controller.GetUserMarkets())
+	private.POST("/market", controller.AddMarket())
+	private.POST("/market/:marketId/edit", controller.EditMarket())
+	private.POST("/market/:marketId/photo/add", controller.AddPhoto())
+}
+func defineGroups(router *gin.Engine) (*gin.RouterGroup, *gin.RouterGroup) {
 	public := router.Group("/public/", api.Cors())
 	private := router.Group("/private/", api.Cors(), api.ValidateToken())
-
-	private.GET("/market", controller.GetUserMarkets())
-	private.POST("/market/create", controller.AddMarket())
-	private.POST("/market/edit", controller.EditMarket())
-	public.GET("/market", controller.GetMarkets())
-
-	router.Run(":8080")
+	return public, private
 }

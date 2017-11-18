@@ -8,7 +8,7 @@ import (
 func ValidateToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.Query("token")
-		
+
 		if token != ""{
 			c.Set("userId", 1)
 			return
