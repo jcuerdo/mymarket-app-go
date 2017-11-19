@@ -11,7 +11,6 @@ import (
 	"time"
 	"strconv"
 	"strings"
-	"fmt"
 )
 
 func AddUser() gin.HandlerFunc {
@@ -77,14 +76,15 @@ func LoginUser() gin.HandlerFunc {
 
 		userRepository := database.GetUserRepository()
 
-		fmt.Println(user)
 		user = userRepository.GetUser(user.Email,user.Password)
-		fmt.Println(user)
-
 
 		if user.Id != 0 {
 			token := generateToken()
 			userRepository.CreateToken(user.Id, token)
+			c.JSON(http.StatusBadRequest, gin.H{
+				"result": token,
+			})
+			c.AbortWithStatus(http.StatusCreated)
 		}
 	}
 }

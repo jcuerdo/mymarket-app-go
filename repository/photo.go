@@ -16,10 +16,12 @@ func (photoRepository *PhotoRepository)GetMarketPhotos(market int) ([]model.Phot
 	return parsePhotoRows(rows, error)
 }
 
-func (photoRepository *PhotoRepository)GetMarketPhoto(market int) ([]model.Photo) {
-	rows, error := 	photoRepository.Db.Query("SELECT id,content FROM photo WHERE market_id = ? limit 1", market)
-	defer rows.Close()
-	return parsePhotoRows(rows, error)
+func (photoRepository *PhotoRepository)GetMarketPhoto(market int) (model.Photo) {
+	row := photoRepository.Db.QueryRow("SELECT id,content FROM photo WHERE market_id = ? limit 1", market)
+	var photo model.Photo
+	row.Scan(&photo.Id, &photo.Content)
+
+	return photo
 }
 
 func (photoRepository *PhotoRepository)Create(photo model.Photo,marketId int) (bool) {
