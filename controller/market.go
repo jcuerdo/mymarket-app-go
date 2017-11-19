@@ -76,16 +76,13 @@ func AddMarket() gin.HandlerFunc {
 			c.Abort()
 		}
 
-		marketRepository.Create(market, userId.(int))
+		market.UserId = userId.(int)
+		marketRepository.Create(market)
 	}
 }
 
 func EditMarket() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
-		//TODO: Function is owner
-
-		marketRepository := database.GetMarketRepository()
 
 		data, err := ioutil.ReadAll(c.Request.Body)
 		if err != nil {
@@ -96,20 +93,46 @@ func EditMarket() gin.HandlerFunc {
 			c.Abort()
 		}
 
-		market := model.Market{}
+		marketModifications := model.Market{}
 
-		if err := json.Unmarshal(data, &market); err != nil {
+		if err := json.Unmarshal(data, &marketModifications); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "Invalid parameters " + err.Error(),
 			})
 			c.Abort()
 		}
-		if market.Id == 0 || market.Name == "" || market.Description == "" || market.Date == "" || market.Lat == 0 || market.Lon == 0 {
+		if marketModifications.Id == 0 || marketModifications.Name == "" || marketModifications.Description == "" || marketModifications.Date == "" || marketModifications.Lat == 0 || marketModifications.Lon == 0 {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "name,description,date,lat,lon are mandatory parameters",
 			})
 			c.Abort()
 		}
-		marketRepository.Edit(market)
+
+		marketRepository := database.GetMarketRepository()
+		marketDb := marketRepository.GetMarket(marketModifications.Id)
+
+		marketDb.Name = marketModifications.Name
+		marketDb.Description = marketModifications.Description
+		marketDb.Date = marketModifications.Date
+		marketDb.Lat = marketModifications.Lat
+		marketDb.Lon = marketModifications.Lon
+
+		userId, _ := c.Get("userId")
+		if isOwner(userId.(int), marketDb) {
+			marketRepository := database.GetMarketRepository()
+			if marketRepository.Edit(marketDb){
+				c.JSON(http.StatusCreated, gin.H{
+					"result": marketDb,
+				})
+				c.Abort()
+			} else{
+				c.AbortWithStatus(http.StatusNotModified)
+			}
+		}
+
 	}
+}
+
+func isOwner(userId int, market model.Market) (bool) {
+	return userId == market.UserId
 }

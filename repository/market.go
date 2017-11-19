@@ -16,9 +16,16 @@ type MarketRepository struct {
 }
 
 func (marketRepository *MarketRepository)GetUserMarkets(user int) ([]model.Market) {
-	rows, error := 	marketRepository.Db.Query("SELECT id,name,description,startdate,lat, lon FROM market WHERE active = 1 and user_id = ?", user)
+	rows, error := 	marketRepository.Db.Query("SELECT id,user_id,name,description,startdate,lat, lon FROM market WHERE active = 1 and user_id = ?", user)
 	defer rows.Close()
 	return parseRows(rows, error)
+}
+
+func (marketRepository *MarketRepository)GetMarket(marketId int) (model.Market) {
+	row := 	marketRepository.Db.QueryRow("SELECT id,user_id,name,description,startdate,lat, lon FROM market WHERE active = 1 and id = ?", marketId)
+	var market model.Market
+	row.Scan(&market.Id, &market.UserId, &market.Description, &market.Name, &market.Date, &market.Lat, &market.Lon)
+	return market
 }
 
 func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFilter) ([]model.Market) {
@@ -30,7 +37,7 @@ func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFil
 
 	rows, error := 	marketRepository.Db.Query(`
 		SELECT
-			id,name,description,startdate,lat, lon
+			id,user_id,name,description,startdate,lat, lon
 		FROM
 			market
 		WHERE
@@ -47,7 +54,7 @@ func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFil
 			minlon,
 			marketFilter.Page * MAX_RESULTS,
 			MAX_RESULTS)
-
+			
 	defer rows.Close()
 	return parseRows(rows, error)
 }
@@ -58,7 +65,7 @@ func rad2deg(rad float64) float64 {
 	return rad * RADIO / math.Pi
 }
 
-func (marketRepository *MarketRepository)Create(market model.Market, userId int) (bool) {
+func (marketRepository *MarketRepository)Create(market model.Market) (bool) {
 	rows, error := 	marketRepository.Db.Query(
 		`
 		INSERT INTO market
@@ -70,7 +77,7 @@ func (marketRepository *MarketRepository)Create(market model.Market, userId int)
 		market.Date,
  		market.Lat,
  		market.Lon,
- 		userId,
+ 		market.UserId,
  		true)
 	defer rows.Close()
 	return error == nil
@@ -111,6 +118,6 @@ func parseRows(rows *sql.Rows, error error) []model.Market {
 }
 func parseRow(rows *sql.Rows) (model.Market, error) {
 	var market model.Market
-	err := rows.Scan(&market.Id, &market.Description, &market.Name, &market.Date, &market.Lat, &market.Lon)
+	err := rows.Scan(&market.Id, &market.UserId, &market.Description, &market.Name, &market.Date, &market.Lat, &market.Lon)
 	return market, err
 }
