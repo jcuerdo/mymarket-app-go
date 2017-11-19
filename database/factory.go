@@ -4,10 +4,12 @@ import (
 	"database/sql"
 	"log"
 	"github.com/jcuerdo/mymarket-app-go/repository"
+	"os"
 )
 
 func getDatabase() (*sql.DB)  {
-	db, err := sql.Open("mysql", "root:123456@tcp(ec2-34-215-191-148.us-west-2.compute.amazonaws.com:3306)/database")
+	dataSource := os.Getenv("DATASOURCE")
+	db, err := sql.Open("mysql", dataSource)
 	if err == nil{
 		return db
 	} else {
