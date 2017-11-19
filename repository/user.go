@@ -31,6 +31,18 @@ func (userRepository *UserRepository)CreateToken(userId int,token string) (bool)
 	return true
 }
 
+func (userRepository *UserRepository)GetUserIdByToken(token string) (int) {
+	row := userRepository.Db.QueryRow(
+		`
+		SELECT user_id FROM token
+		WHERE token = ?`,
+		token,
+	)
+
+	var userId int
+	row.Scan(&userId)
+	return userId
+}
 
 func (userRepository *UserRepository)CreateUser(user model.User) (bool) {
 	rows, error := 	userRepository.Db.Query(

@@ -22,11 +22,11 @@ func (marketRepository *MarketRepository)GetMarkets() ([]model.Market) {
 	return parseRows(rows, error)
 }
 
-func (marketRepository *MarketRepository)Create(market model.Market) (bool) {
+func (marketRepository *MarketRepository)Create(market model.Market, userId int) (bool) {
 	rows, error := 	marketRepository.Db.Query(
 		`
 		INSERT INTO market
-		(id,name,description,startdate,lat,lon,active)
+		(id,name,description,startdate,lat,lon,active,user_id)
 		VALUES
 		(null,?,?,?,?,?,?)`,
 		market.Name,
@@ -34,6 +34,7 @@ func (marketRepository *MarketRepository)Create(market model.Market) (bool) {
 		market.Date,
  		market.Lat,
  		market.Lon,
+ 		userId,
  		true)
 	defer rows.Close()
 	return error == nil

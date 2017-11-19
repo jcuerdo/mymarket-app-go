@@ -30,10 +30,11 @@ func GetUserMarkets() gin.HandlerFunc {
 				"result": markets,
 				"count":  len(markets),
 			})
+		} else {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "User ID not set",
+			})
 		}
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User ID not set",
-		})
 
 	}
 }
@@ -41,7 +42,7 @@ func GetUserMarkets() gin.HandlerFunc {
 func AddMarket() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		marketRepository := database.GetMarketRepository()
-
+		userId, _ := c.Get("userId")
 		data, err := ioutil.ReadAll(c.Request.Body)
 		if err != nil {
 			c.Writer.WriteHeader(http.StatusBadRequest)
@@ -67,13 +68,15 @@ func AddMarket() gin.HandlerFunc {
 			c.Abort()
 		}
 
-		marketRepository.Create(market)
+		marketRepository.Create(market, userId.(int))
 	}
 	}
 
 	func EditMarket() gin.HandlerFunc {
 		return func(c *gin.Context) {
-		//TODO Check user is the owner
+
+		//TODO: Function is owner
+
 		marketRepository := database.GetMarketRepository()
 
 		data, err := ioutil.ReadAll(c.Request.Body)

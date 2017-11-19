@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"github.com/jcuerdo/mymarket-app-go/database"
 )
 
 func ValidateToken() gin.HandlerFunc {
@@ -10,11 +11,20 @@ func ValidateToken() gin.HandlerFunc {
 		token := c.Query("token")
 
 		if token != ""{
-			c.Set("userId", 1)
+			userRepository := database.GetUserRepository()
+			userId := userRepository.GetUserIdByToken(token)
+			if userId > 0 {
+				c.Set("userId", userId)
+				return
+			}
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "token not valid",
+			})
+			c.Abort()
 			return
 		}
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "'token' field for authorization is required",
+			"error": "token field for authorization is required",
 		})
 		c.Abort()
 	}
