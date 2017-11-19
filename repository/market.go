@@ -4,7 +4,12 @@ import (
 	"github.com/jcuerdo/mymarket-app-go/model"
 	"log"
 	"database/sql"
+	"math"
 )
+
+const EARTH_RATE  =  6371
+const RADIO  =  180
+const MAX_RESULTS  =  5
 
 type MarketRepository struct {
 	Db *sql.DB
@@ -16,10 +21,41 @@ func (marketRepository *MarketRepository)GetUserMarkets(user int) ([]model.Marke
 	return parseRows(rows, error)
 }
 
-func (marketRepository *MarketRepository)GetMarkets() ([]model.Market) {
-	rows, error := 	marketRepository.Db.Query("SELECT id,name,description,startdate,lat, lon FROM market WHERE active = 1")
+func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFilter) ([]model.Market) {
+
+	maxlat := marketFilter.Lat + rad2deg(marketFilter.Radio/EARTH_RATE)
+	minlat := marketFilter.Lat - rad2deg(marketFilter.Radio/EARTH_RATE)
+	maxlon := marketFilter.Lon + rad2deg(math.Asin(marketFilter.Radio/EARTH_RATE) / math.Cos(deg2rad(marketFilter.Lat)))
+	minlon := marketFilter.Lon - rad2deg(math.Asin(marketFilter.Radio/EARTH_RATE) / math.Cos(deg2rad(marketFilter.Lat)))
+
+	rows, error := 	marketRepository.Db.Query(`
+		SELECT
+			id,name,description,startdate,lat, lon
+		FROM
+			market
+		WHERE
+			active = 1 AND
+			lat <= ?   AND
+			lat >= ?   AND
+			lon <= ?   AND
+			lon >= ?
+		LIMIT ?,?
+			`,
+			maxlat,
+			minlat,
+			maxlon,
+			minlon,
+			marketFilter.Page * MAX_RESULTS,
+			MAX_RESULTS)
+
 	defer rows.Close()
 	return parseRows(rows, error)
+}
+func deg2rad(deg float64) float64 {
+	return deg * math.Pi / RADIO
+}
+func rad2deg(rad float64) float64 {
+	return rad * RADIO / math.Pi
 }
 
 func (marketRepository *MarketRepository)Create(market model.Market, userId int) (bool) {
