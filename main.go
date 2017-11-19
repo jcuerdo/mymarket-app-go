@@ -26,8 +26,9 @@ func definePublicRoutes(public *gin.RouterGroup) {
 func definePrivateRoutes(private *gin.RouterGroup) {
 	private.GET("/market", controller.GetUserMarkets())
 	private.POST("/market", controller.AddMarket())
+	private.OPTIONS("/market", api.Options())
 	private.POST("/market/:marketId/edit", controller.EditMarket())
-	private.POST("/market/:marketId/photo/add", controller.AddPhoto())
+	private.POST("/market/:marketId/photo", controller.AddPhoto())
 }
 func defineGroups(router *gin.Engine) (*gin.RouterGroup, *gin.RouterGroup) {
 	public := router.Group("/public/", api.Cors())

@@ -65,13 +65,13 @@ func rad2deg(rad float64) float64 {
 	return rad * RADIO / math.Pi
 }
 
-func (marketRepository *MarketRepository)Create(market model.Market) (bool) {
-	rows, error := 	marketRepository.Db.Query(
+func (marketRepository *MarketRepository)Create(market model.Market) {
+	rows, _ := 	marketRepository.Db.Query(
 		`
 		INSERT INTO market
 		(id,name,description,startdate,lat,lon,active,user_id)
 		VALUES
-		(null,?,?,?,?,?,?)`,
+		(null,?,?,?,?,?,?,?)`,
 		market.Name,
 		market.Description,
 		market.Date,
@@ -79,8 +79,8 @@ func (marketRepository *MarketRepository)Create(market model.Market) (bool) {
  		market.Lon,
  		market.UserId,
  		true)
+
 	defer rows.Close()
-	return error == nil
 }
 
 func (marketRepository *MarketRepository) Edit(market model.Market) (bool) {

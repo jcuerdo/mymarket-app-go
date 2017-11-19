@@ -8,6 +8,7 @@ import (
 	"github.com/jcuerdo/mymarket-app-go/model"
 	"encoding/json"
 	"strconv"
+	"time"
 )
 
 func GetMarkets() gin.HandlerFunc {
@@ -76,8 +77,17 @@ func AddMarket() gin.HandlerFunc {
 			c.Abort()
 		}
 
+		datetime, _ := time.Parse(time.RFC3339,market.Date)
+
+		market.Date = datetime.Format("2006-01-02 15:04:05")
+
 		market.UserId = userId.(int)
 		marketRepository.Create(market)
+
+		c.JSON(http.StatusCreated, gin.H{
+			"result": market,
+		})
+		c.Abort()
 	}
 }
 
@@ -129,6 +139,8 @@ func EditMarket() gin.HandlerFunc {
 				c.AbortWithStatus(http.StatusNotModified)
 			}
 		}
+
+		c.AbortWithStatus(http.StatusUnauthorized)
 
 	}
 }
