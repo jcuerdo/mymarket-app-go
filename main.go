@@ -5,11 +5,26 @@ import (
 	"github.com/jcuerdo/mymarket-app-go/api"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jcuerdo/mymarket-app-go/controller"
+	"os"
+	"io"
+	"log"
 )
 
 func main() {
 
 	router := gin.Default()
+
+	f, err := os.OpenFile("log.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+	defer f.Close()
+
+	gin.DefaultWriter = io.MultiWriter(f)
+	gin.DefaultErrorWriter = io.MultiWriter(f)
+
+	router.Use(gin.Logger())
+	router.Use(gin.Recovery())
 
 	public, private := defineGroups(router)
 	definePrivateRoutes(private)
