@@ -54,8 +54,8 @@ func (photoRepository *PhotoRepository) Edit(market model.Market) (bool) {
 }
 
 func parsePhotoRows(rows *sql.Rows, error error) []model.Photo {
+	var photos []model.Photo
 	if error == nil {
-		var photos []model.Photo
 		for rows.Next() {
 			photo, err := parsePhotoRow(rows)
 			if err != nil {
@@ -65,9 +65,8 @@ func parsePhotoRows(rows *sql.Rows, error error) []model.Photo {
 				photos = append(photos, photo)
 			}
 		}
-		return photos
 	}
-	return nil
+	return photos
 
 }
 func parsePhotoRow(rows *sql.Rows) (model.Photo, error) {
