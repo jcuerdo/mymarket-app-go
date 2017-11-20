@@ -2,9 +2,9 @@ package database
 
 import (
 	"database/sql"
-	"log"
 	"github.com/jcuerdo/mymarket-app-go/repository"
 	"os"
+	"fmt"
 )
 
 func getDatabase() (*sql.DB)  {
@@ -13,7 +13,7 @@ func getDatabase() (*sql.DB)  {
 	if err == nil{
 		return db
 	} else {
-		log.Fatal(err)
+		fmt.Println(err)
 		panic(err)
 		return nil
 	}

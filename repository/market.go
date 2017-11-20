@@ -2,9 +2,9 @@ package repository
 
 import (
 	"github.com/jcuerdo/mymarket-app-go/model"
-	"log"
 	"database/sql"
 	"math"
+	"fmt"
 )
 
 const EARTH_RATE  =  6371
@@ -66,7 +66,7 @@ func rad2deg(rad float64) float64 {
 }
 
 func (marketRepository *MarketRepository)Create(market model.Market) {
-	rows, _ := 	marketRepository.Db.Query(
+	rows, error := 	marketRepository.Db.Query(
 		`
 		INSERT INTO market
 		(id,name,description,startdate,lat,lon,active,user_id)
@@ -79,6 +79,10 @@ func (marketRepository *MarketRepository)Create(market model.Market) {
  		market.Lon,
  		market.UserId,
  		true)
+	defer rows.Close()
+ 	if error != nil{
+ 		fmt.Println(error)
+	}
 
 	defer rows.Close()
 }
@@ -96,6 +100,9 @@ func (marketRepository *MarketRepository) Edit(market model.Market) (bool) {
 		market.Lon,
 		market.Id,)
 	defer rows.Close()
+	if error != nil{
+		fmt.Println(error)
+	}
 	return error == nil
 }
 
@@ -105,19 +112,24 @@ func parseRows(rows *sql.Rows, error error) []model.Market {
 		for rows.Next() {
 			market, err := parseRow(rows)
 			if err != nil {
-				log.Fatal(error)
-
+				fmt.Println(error)
 			} else {
 				markets = append(markets, market)
 			}
 		}
 		return markets
+	} else{
+		fmt.Println(error)
 	}
+
 	return nil
 
 }
 func parseRow(rows *sql.Rows) (model.Market, error) {
 	var market model.Market
 	err := rows.Scan(&market.Id, &market.UserId, &market.Description, &market.Name, &market.Date, &market.Lat, &market.Lon)
+	if err != nil{
+		fmt.Println(err)
+	}
 	return market, err
 }
