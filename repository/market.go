@@ -54,7 +54,11 @@ func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFil
 			minlon,
 			marketFilter.Page * MAX_RESULTS,
 			MAX_RESULTS)
-			
+
+	if error != nil{
+		fmt.Println(error)
+	}
+
 	defer rows.Close()
 	return parseRows(rows, error)
 }
