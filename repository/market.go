@@ -57,6 +57,7 @@ func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFil
 
 	if error != nil{
 		fmt.Println(error)
+		return nil
 	}
 
 	defer rows.Close()
