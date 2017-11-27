@@ -12,6 +12,7 @@ type UserRepository struct {
 
 func (userRepository *UserRepository)GetUser(email string,password string) (model.User) {
 	rows, error := 	userRepository.Db.Query("SELECT id, password, email, fullname, photo,description,role FROM user WHERE email = ? and password = ?", email, password)
+	defer rows.Close()
 	if error == nil{
 		for rows.Next() {
 			user, err := parseUserRow(rows)

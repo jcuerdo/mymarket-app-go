@@ -55,12 +55,12 @@ func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFil
 			marketFilter.Page * MAX_RESULTS,
 			MAX_RESULTS)
 
+	defer rows.Close()
 	if error != nil{
 		fmt.Println(error)
 		return nil
 	}
 
-	defer rows.Close()
 	return parseRows(rows, error)
 }
 func deg2rad(deg float64) float64 {
@@ -88,8 +88,6 @@ func (marketRepository *MarketRepository)Create(market model.Market) {
  	if error != nil{
  		fmt.Println(error)
 	}
-
-	defer rows.Close()
 }
 
 func (marketRepository *MarketRepository) Edit(market model.Market) (bool) {
