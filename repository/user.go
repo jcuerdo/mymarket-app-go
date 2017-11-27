@@ -11,24 +11,26 @@ type UserRepository struct {
 }
 
 func (userRepository *UserRepository)GetUser(email string,password string) (model.User) {
-	rows, error := 	userRepository.Db.Query("SELECT id, password, email, fullname, photo,description,role FROM user WHERE email = ? and password = ?", email, password)
-	defer rows.Close()
+	stmt, error := 	userRepository.Db.Prepare("SELECT id, password, email, fullname, photo,description,role FROM user WHERE email = ? and password = ?")
+	row := stmt.QueryRow(email, password)
+	defer stmt.Close()
+	defer userRepository.Db.Close()
 	if error == nil{
-		for rows.Next() {
-			user, err := parseUserRow(rows)
-			if err == nil {
-				return user
-			}
+		user, error := parseUserRow(row)
+		if error == nil{
+			return user
 		}
-	} else{
-		fmt.Println(error)
 	}
+
+	fmt.Println(error)
 	return model.User{}
 }
 
 func (userRepository *UserRepository)CreateToken(userId int,token string) (bool) {
-	rows, error := 	userRepository.Db.Query("INSERT INTO token (id,user_id,token) VALUES (null, ? , ?)", userId,token)
-	defer rows.Close()
+	stmt, error := 	userRepository.Db.Prepare("INSERT INTO token (id,user_id,token) VALUES (null, ? , ?)")
+	_, error = stmt.Exec(userId,token)
+	defer stmt.Close()
+	defer userRepository.Db.Close()
 	if error != nil{
 		fmt.Println(error)
 		return true
@@ -37,15 +39,17 @@ func (userRepository *UserRepository)CreateToken(userId int,token string) (bool)
 }
 
 func (userRepository *UserRepository)GetUserIdByToken(token string) (int) {
-	row := userRepository.Db.QueryRow(
+	stmt, error := userRepository.Db.Prepare(
 		`
 		SELECT user_id FROM token
-		WHERE token = ?`,
-		token,
-	)
+		WHERE token = ?`)
 
+	row := stmt.QueryRow(token)
+
+	defer stmt.Close()
+	defer userRepository.Db.Close()
 	var userId int
-	error := row.Scan(&userId)
+	error = row.Scan(&userId)
 
 	if error != nil{
 		fmt.Println(error)
@@ -54,29 +58,32 @@ func (userRepository *UserRepository)GetUserIdByToken(token string) (int) {
 }
 
 func (userRepository *UserRepository)CreateUser(user model.User) (bool) {
-	rows, error := 	userRepository.Db.Query(
+	stmt, error := 	userRepository.Db.Prepare(
 		`
 		INSERT INTO user
 		(id,password,email,fullname,photo,description,role)
 		VALUES
-		(null,?,?,?,?,?,?)`,
+		(null,?,?,?,?,?,?)`)
+
+	_ , error = stmt.Exec(
 		user.Password,
 		user.Email,
 		user.FullName,
 		user.Photo,
 		user.Description,
-		"USER",
-		)
-	defer rows.Close()
+		"USER")
+
+	defer userRepository.Db.Close()
+	defer stmt.Close()
 	if error != nil{
 		fmt.Println(error)
 	}
 	return error == nil
 }
 
-func parseUserRow(rows *sql.Rows) (model.User, error) {
+func parseUserRow(row *sql.Row) (model.User, error) {
 	var user model.User
-	err := rows.Scan(&user.Id, &user.Password, &user.Email,&user.FullName,&user.Photo,&user.Description,&user.Role)
+	err := row.Scan(&user.Id, &user.Password, &user.Email,&user.FullName,&user.Photo,&user.Description,&user.Role)
 
 	if err != nil{
 		fmt.Println(err)

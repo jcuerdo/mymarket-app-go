@@ -16,13 +16,21 @@ type MarketRepository struct {
 }
 
 func (marketRepository *MarketRepository)GetUserMarkets(user int) ([]model.Market) {
-	rows, error := 	marketRepository.Db.Query("SELECT id,user_id,name,description,startdate,lat, lon FROM market WHERE active = 1 and user_id = ?", user)
+	stmt, error := 	marketRepository.Db.Prepare("SELECT id,user_id,name,description,startdate,lat, lon FROM market WHERE active = 1 and user_id = ?")
+	rows, error := stmt.Query(user)
 	defer rows.Close()
+	defer marketRepository.Db.Close()
 	return parseRows(rows, error)
 }
 
 func (marketRepository *MarketRepository)GetMarket(marketId int) (model.Market) {
-	row := 	marketRepository.Db.QueryRow("SELECT id,user_id,name,description,startdate,lat, lon FROM market WHERE active = 1 and id = ?", marketId)
+	stmt, error := marketRepository.Db.Prepare("SELECT id,user_id,name,description,startdate,lat, lon FROM market WHERE active = 1 and id = ?")
+	if error != nil{
+		fmt.Println(error)
+		return model.Market{}
+	}
+	row := stmt.QueryRow(marketId)
+	defer marketRepository.Db.Close()
 	var market model.Market
 	row.Scan(&market.Id, &market.UserId, &market.Description, &market.Name, &market.Date, &market.Lat, &market.Lon)
 	return market
@@ -35,7 +43,7 @@ func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFil
 	maxlon := marketFilter.Lon + rad2deg(math.Asin(marketFilter.Radio/EARTH_RATE) / math.Cos(deg2rad(marketFilter.Lat)))
 	minlon := marketFilter.Lon - rad2deg(math.Asin(marketFilter.Radio/EARTH_RATE) / math.Cos(deg2rad(marketFilter.Lat)))
 
-	rows, error := 	marketRepository.Db.Query(`
+	stmt, error := 	marketRepository.Db.Prepare(`
 		SELECT
 			id,user_id,name,description,startdate,lat, lon
 		FROM
@@ -47,15 +55,18 @@ func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFil
 			lon <= ?   AND
 			lon >= ?
 		LIMIT ?,?
-			`,
-			maxlat,
-			minlat,
-			maxlon,
-			minlon,
-			marketFilter.Page * MAX_RESULTS,
-			MAX_RESULTS)
+			`)
 
-	defer rows.Close()
+	rows , error := stmt.Query(
+		maxlat,
+		minlat,
+		maxlon,
+		minlon,
+		marketFilter.Page * MAX_RESULTS,
+		MAX_RESULTS)
+
+	defer stmt.Close()
+	defer marketRepository.Db.Close()
 	if error != nil{
 		fmt.Println(error)
 		return nil
@@ -63,6 +74,7 @@ func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFil
 
 	return parseRows(rows, error)
 }
+
 func deg2rad(deg float64) float64 {
 	return deg * math.Pi / RADIO
 }
@@ -71,38 +83,45 @@ func rad2deg(rad float64) float64 {
 }
 
 func (marketRepository *MarketRepository)Create(market model.Market) {
-	rows, error := 	marketRepository.Db.Query(
+	stmt, error := 	marketRepository.Db.Prepare(
 		`
 		INSERT INTO market
 		(id,name,description,startdate,lat,lon,active,user_id)
 		VALUES
-		(null,?,?,?,?,?,?,?)`,
+		(null,?,?,?,?,?,?,?)`)
+	 _ , error = stmt.Exec(
 		market.Name,
 		market.Description,
 		market.Date,
- 		market.Lat,
- 		market.Lon,
- 		market.UserId,
- 		true)
-	defer rows.Close()
+		market.Lat,
+		market.Lon,
+		market.UserId,
+		true)
+
+	defer marketRepository.Db.Close()
  	if error != nil{
  		fmt.Println(error)
 	}
 }
 
 func (marketRepository *MarketRepository) Edit(market model.Market) (bool) {
-	rows, error := 	marketRepository.Db.Query(
+	stmt, error := 	marketRepository.Db.Prepare(
 		`
 		UPDATE market SET
 		name = ?, description = ? , startdate = ?,lat = ?,lon = ?
-		WHERE id = ?`,
+		WHERE id = ?`)
+
+	_, error = stmt.Exec(
 		market.Name,
 		market.Description,
 		market.Date,
 		market.Lat,
 		market.Lon,
-		market.Id,)
-	defer rows.Close()
+		market.Id)
+
+	defer stmt.Close()
+	defer marketRepository.Db.Close()
+
 	if error != nil{
 		fmt.Println(error)
 	}

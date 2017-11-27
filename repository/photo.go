@@ -11,8 +11,10 @@ type PhotoRepository struct {
 }
 
 func (photoRepository *PhotoRepository)GetMarketPhotos(market int) ([]model.Photo) {
-	rows, error := 	photoRepository.Db.Query("SELECT id,content FROM photo WHERE market_id = ?", market)
-	defer rows.Close()
+	stmt, error := 	photoRepository.Db.Prepare("SELECT id,content FROM photo WHERE market_id = ?")
+	defer stmt.Close()
+	defer photoRepository.Db.Close()
+	rows , error := stmt.Query(market)
 	if error != nil{
 		fmt.Println(error)
 	}
@@ -20,23 +22,33 @@ func (photoRepository *PhotoRepository)GetMarketPhotos(market int) ([]model.Phot
 }
 
 func (photoRepository *PhotoRepository)GetMarketPhoto(market int) (model.Photo) {
-	row := photoRepository.Db.QueryRow("SELECT id,content FROM photo WHERE market_id = ? limit 1", market)
+	stmt,error := photoRepository.Db.Prepare("SELECT id,content FROM photo WHERE market_id = ? limit 1")
+	if error != nil{
+		fmt.Println(error)
+	}
+	row := stmt.QueryRow(market)
 	var photo model.Photo
+	defer stmt.Close()
+	defer photoRepository.Db.Close()
 	row.Scan(&photo.Id, &photo.Content)
 
 	return photo
 }
 
 func (photoRepository *PhotoRepository)Create(photo model.Photo,marketId int) (bool) {
-	rows, error := 	photoRepository.Db.Query(
+	stmt, error := 	photoRepository.Db.Prepare(
 		`
 		INSERT INTO photo
 		(id,content,market_id)
 		VALUES
-		(null,?,?)`,
+		(null,?,?)`)
+
+	stmt.Exec(
 		photo.Content,
 		marketId)
-	defer rows.Close()
+
+	defer stmt.Close()
+	defer photoRepository.Db.Close()
 	if error != nil{
 		fmt.Println(error)
 	}
@@ -44,18 +56,20 @@ func (photoRepository *PhotoRepository)Create(photo model.Photo,marketId int) (b
 }
 
 func (photoRepository *PhotoRepository) Edit(market model.Market) (bool) {
-	rows, error := 	photoRepository.Db.Query(
+	stmt, error := 	photoRepository.Db.Prepare(
 		`
 		UPDATE market SET
 		name = ?, description = ? , startdate = ?,lat = ?,lon = ?
-		WHERE id = ?`,
+		WHERE id = ?`)
+	stmt.Exec(
 		market.Name,
 		market.Description,
 		market.Date,
 		market.Lat,
 		market.Lon,
-		market.Id,)
-	defer rows.Close()
+		market.Id)
+	defer stmt.Close()
+	defer photoRepository.Db.Close()
 	if error != nil{
 		fmt.Println(error)
 	}
