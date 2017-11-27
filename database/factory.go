@@ -10,6 +10,8 @@ import (
 func getDatabase() (*sql.DB)  {
 	dataSource := os.Getenv("DATASOURCE")
 	db, err := sql.Open("mysql", dataSource)
+	db.SetMaxOpenConns(10)
+
 	if err == nil{
 		return db
 	} else {
