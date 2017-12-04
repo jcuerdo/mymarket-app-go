@@ -3,16 +3,20 @@ package database
 import (
 	"database/sql"
 	"github.com/jcuerdo/mymarket-app-go/repository"
-	"os"
 	"fmt"
+	config2 "github.com/jcuerdo/mymarket-app-go/config"
 )
 
+const PARAMETERS_FILE = "parameters.yml"
+
 func getDatabase() (*sql.DB)  {
-	dataSource := os.Getenv("DATASOURCE")
-	db, err := sql.Open("mysql", dataSource)
+	loader := config2.Loader{PARAMETERS_FILE}
+	config :=  loader.Load()
+	db, err := sql.Open("mysql", config.Datasource)
 	db.SetMaxOpenConns(10)
 
 	if err == nil{
+		fmt.Println(config.Datasource)
 		return db
 	} else {
 		fmt.Println(err)

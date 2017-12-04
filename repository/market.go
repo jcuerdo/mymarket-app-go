@@ -56,6 +56,12 @@ func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFil
 			lon >= ?
 		LIMIT ?,?
 			`)
+	defer stmt.Close()
+	defer marketRepository.Db.Close()
+
+	if error != nil {
+		fmt.Println(error)
+	}
 
 	rows , error := stmt.Query(
 		maxlat,
@@ -65,8 +71,10 @@ func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFil
 		marketFilter.Page * MAX_RESULTS,
 		MAX_RESULTS)
 
-	defer stmt.Close()
-	defer marketRepository.Db.Close()
+	if error != nil {
+		fmt.Println(error)
+	}
+
 	if error != nil{
 		fmt.Println(error)
 		return nil
@@ -89,7 +97,7 @@ func (marketRepository *MarketRepository)Create(market model.Market) {
 		(id,name,description,startdate,lat,lon,active,user_id)
 		VALUES
 		(null,?,?,?,?,?,?,?)`)
-	 _ , error = stmt.Exec(
+	_ , error = stmt.Exec(
 		market.Name,
 		market.Description,
 		market.Date,
@@ -98,7 +106,9 @@ func (marketRepository *MarketRepository)Create(market model.Market) {
 		market.UserId,
 		true)
 
+	defer stmt.Close()
 	defer marketRepository.Db.Close()
+
  	if error != nil{
  		fmt.Println(error)
 	}

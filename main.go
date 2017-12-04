@@ -8,13 +8,18 @@ import (
 	"os"
 	"io"
 	"log"
+	config2 "github.com/jcuerdo/mymarket-app-go/config"
 )
 
+const PARAMETERS_FILE = "parameters.yml"
+
 func main() {
+	loader := config2.Loader{PARAMETERS_FILE}
+	config := loader.Load()
 
 	router := gin.Default()
 
-	f, err := os.OpenFile("log.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	f, err := os.OpenFile(config.LogFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}

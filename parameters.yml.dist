@@ -1,0 +1,2 @@
+datasource: "root:12345678@tcp(jcuerdo-dbb.cpcbsvtonq3r.eu-central-1.rds.amazonaws.com:3306)/market"
+logfile: "./log.log"
