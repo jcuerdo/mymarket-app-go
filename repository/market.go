@@ -23,7 +23,7 @@ func (marketRepository *MarketRepository)GetUserMarkets(user int) ([]model.Marke
 	return parseRows(rows, error)
 }
 
-func (marketRepository *MarketRepository)GetMarket(marketId int) (model.Market) {
+func (marketRepository *MarketRepository)GetMarket(marketId int64) (model.Market) {
 	stmt, error := marketRepository.Db.Prepare("SELECT id,user_id,name,description,startdate,lat, lon FROM market WHERE active = 1 and id = ?")
 	if error != nil{
 		fmt.Println(error)
@@ -90,14 +90,14 @@ func rad2deg(rad float64) float64 {
 	return rad * RADIO / math.Pi
 }
 
-func (marketRepository *MarketRepository)Create(market model.Market) {
+func (marketRepository *MarketRepository)Create(market model.Market) int64{
 	stmt, error := 	marketRepository.Db.Prepare(
 		`
 		INSERT INTO market
 		(id,name,description,startdate,lat,lon,active,user_id)
 		VALUES
 		(null,?,?,?,?,?,?,?)`)
-	_ , error = stmt.Exec(
+	 result , error := stmt.Exec(
 		market.Name,
 		market.Description,
 		market.Date,
@@ -112,6 +112,10 @@ func (marketRepository *MarketRepository)Create(market model.Market) {
  	if error != nil{
  		fmt.Println(error)
 	}
+
+	lastInsertedId, _:= result.LastInsertId()
+
+	return lastInsertedId
 }
 
 func (marketRepository *MarketRepository) Edit(market model.Market) (bool) {

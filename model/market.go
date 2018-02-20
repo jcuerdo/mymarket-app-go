@@ -1,7 +1,7 @@
 package model
 
 type Market struct {
-	Id           int 	`json:"id"`
+	Id           int64 	`json:"id"`
 	UserId       int 	`json:"user_id"`
 	Name         string `json:"name"`
 	Description  string `json:"description"`
