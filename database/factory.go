@@ -3,8 +3,8 @@ package database
 import (
 	"database/sql"
 	"github.com/jcuerdo/mymarket-app-go/repository"
-	"fmt"
 	config2 "github.com/jcuerdo/mymarket-app-go/config"
+	"log"
 )
 
 const PARAMETERS_FILE = "parameters.yml"
@@ -16,11 +16,9 @@ func getDatabase() (*sql.DB)  {
 	db.SetMaxOpenConns(10)
 
 	if err == nil{
-		fmt.Println(config.Datasource)
 		return db
 	} else {
-		fmt.Println(err)
-		panic(err)
+		log.Fatal(err)
 		return nil
 	}
 }

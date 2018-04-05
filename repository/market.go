@@ -4,7 +4,7 @@ import (
 	"github.com/jcuerdo/mymarket-app-go/model"
 	"database/sql"
 	"math"
-	"fmt"
+	"log"
 )
 
 const EARTH_RATE  =  6371
@@ -26,7 +26,7 @@ func (marketRepository *MarketRepository)GetUserMarkets(user int) ([]model.Marke
 func (marketRepository *MarketRepository)GetMarket(marketId int64) (model.Market) {
 	stmt, error := marketRepository.Db.Prepare("SELECT id,user_id,name,description,startdate,lat, lon FROM market WHERE active = 1 and id = ?")
 	if error != nil{
-		fmt.Println(error)
+		log.Println(error)
 		return model.Market{}
 	}
 	row := stmt.QueryRow(marketId)
@@ -37,6 +37,13 @@ func (marketRepository *MarketRepository)GetMarket(marketId int64) (model.Market
 }
 
 func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFilter) ([]model.Market) {
+	if marketFilter.Radio > EARTH_RATE {
+		marketFilter.Radio = EARTH_RATE
+	}
+
+	if marketFilter.Radio < 0 {
+		marketFilter.Radio = 0
+	}
 
 	maxlat := marketFilter.Lat + rad2deg(marketFilter.Radio/EARTH_RATE)
 	minlat := marketFilter.Lat - rad2deg(marketFilter.Radio/EARTH_RATE)
@@ -60,7 +67,7 @@ func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFil
 	defer marketRepository.Db.Close()
 
 	if error != nil {
-		fmt.Println(error)
+		log.Println(error)
 	}
 
 	rows , error := stmt.Query(
@@ -72,11 +79,11 @@ func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFil
 		MAX_RESULTS)
 
 	if error != nil {
-		fmt.Println(error)
+		log.Println(error)
 	}
 
 	if error != nil{
-		fmt.Println(error)
+		log.Println(error)
 		return nil
 	}
 
@@ -110,7 +117,7 @@ func (marketRepository *MarketRepository)Create(market model.Market) int64{
 	defer marketRepository.Db.Close()
 
  	if error != nil{
- 		fmt.Println(error)
+ 		log.Println(error)
 	}
 
 	lastInsertedId, _:= result.LastInsertId()
@@ -137,7 +144,7 @@ func (marketRepository *MarketRepository) Edit(market model.Market) (bool) {
 	defer marketRepository.Db.Close()
 
 	if error != nil{
-		fmt.Println(error)
+		log.Println(error)
 	}
 	return error == nil
 }
@@ -148,14 +155,14 @@ func parseRows(rows *sql.Rows, error error) []model.Market {
 		for rows.Next() {
 			market, err := parseRow(rows)
 			if err != nil {
-				fmt.Println(error)
+				log.Println(error)
 			} else {
 				markets = append(markets, market)
 			}
 		}
 		return markets
 	} else{
-		fmt.Println(error)
+		log.Println(error)
 	}
 
 	return nil
@@ -165,7 +172,7 @@ func parseRow(rows *sql.Rows) (model.Market, error) {
 	var market model.Market
 	err := rows.Scan(&market.Id, &market.UserId, &market.Description, &market.Name, &market.Date, &market.Lat, &market.Lon)
 	if err != nil{
-		fmt.Println(err)
+		log.Println(err)
 	}
 	return market, err
 }

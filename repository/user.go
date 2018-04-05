@@ -3,7 +3,7 @@ package repository
 import (
 	"github.com/jcuerdo/mymarket-app-go/model"
 	"database/sql"
-	"fmt"
+	"log"
 )
 
 type UserRepository struct {
@@ -22,7 +22,7 @@ func (userRepository *UserRepository)GetUser(email string,password string) (mode
 		}
 	}
 
-	fmt.Println(error)
+	log.Println(error)
 	return model.User{}
 }
 
@@ -32,7 +32,7 @@ func (userRepository *UserRepository)CreateToken(userId int,token string) (bool)
 	defer stmt.Close()
 	defer userRepository.Db.Close()
 	if error != nil{
-		fmt.Println(error)
+		log.Println(error)
 		return true
 	}
 	return false
@@ -52,7 +52,7 @@ func (userRepository *UserRepository)GetUserIdByToken(token string) (int) {
 	error = row.Scan(&userId)
 
 	if error != nil{
-		fmt.Println(error)
+		log.Println(error)
 	}
 	return userId
 }
@@ -76,7 +76,7 @@ func (userRepository *UserRepository)CreateUser(user model.User) (bool) {
 	defer userRepository.Db.Close()
 	defer stmt.Close()
 	if error != nil{
-		fmt.Println(error)
+		log.Println(error)
 	}
 	return error == nil
 }
@@ -86,7 +86,7 @@ func parseUserRow(row *sql.Row) (model.User, error) {
 	err := row.Scan(&user.Id, &user.Password, &user.Email,&user.FullName,&user.Photo,&user.Description,&user.Role)
 
 	if err != nil{
-		fmt.Println(err)
+		log.Println(err)
 	}
 	return user, err
 }
