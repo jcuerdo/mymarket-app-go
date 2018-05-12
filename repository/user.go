@@ -76,6 +76,7 @@ func (userRepository *UserRepository)CreateUser(user model.User) (bool) {
 		user.Description,
 		"USER")
 
+	defer userRepository.Db.Close()
 	defer stmt.Close()
 	if error != nil{
 		log.Println(error)

@@ -13,6 +13,7 @@ type PhotoRepository struct {
 func (photoRepository *PhotoRepository)GetMarketPhotos(market int) ([]model.Photo) {
 	stmt, error := 	photoRepository.Db.Prepare("SELECT id,content FROM photo WHERE market_id = ?")
 	defer stmt.Close()
+	defer photoRepository.Db.Close()
 	rows , error := stmt.Query(market)
 	if error != nil{
 		log.Println(error)
@@ -28,6 +29,7 @@ func (photoRepository *PhotoRepository)GetMarketPhoto(market int) (model.Photo) 
 	row := stmt.QueryRow(market)
 	var photo model.Photo
 	defer stmt.Close()
+	defer photoRepository.Db.Close()
 	row.Scan(&photo.Id, &photo.Content)
 
 	return photo
@@ -46,6 +48,7 @@ func (photoRepository *PhotoRepository)Create(photo model.Photo,marketId int) (b
 		marketId)
 
 	defer stmt.Close()
+	defer photoRepository.Db.Close()
 	if error != nil{
 		log.Println(error)
 	}
@@ -66,6 +69,7 @@ func (photoRepository *PhotoRepository) Edit(market model.Market) (bool) {
 		market.Lon,
 		market.Id)
 	defer stmt.Close()
+	defer photoRepository.Db.Close()
 	if error != nil{
 		log.Println(error)
 	}
