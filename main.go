@@ -23,10 +23,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}
-	defer f.Close()
 
-	gin.DefaultWriter = io.MultiWriter(f)
-	gin.DefaultErrorWriter = io.MultiWriter(f)
+	multiWritter := io.MultiWriter(f, os.Stdout)
+	gin.DefaultWriter = multiWritter
+	gin.DefaultErrorWriter = multiWritter
+	log.SetOutput(multiWritter)
 
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())

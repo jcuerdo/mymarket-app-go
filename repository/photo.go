@@ -3,7 +3,7 @@ package repository
 import (
 	"github.com/jcuerdo/mymarket-app-go/model"
 	"database/sql"
-	"fmt"
+	"log"
 )
 
 type PhotoRepository struct {
@@ -15,7 +15,7 @@ func (photoRepository *PhotoRepository)GetMarketPhotos(market int) ([]model.Phot
 	defer stmt.Close()
 	rows , error := stmt.Query(market)
 	if error != nil{
-		fmt.Println(error)
+		log.Println(error)
 	}
 	return parsePhotoRows(rows, error)
 }
@@ -23,7 +23,7 @@ func (photoRepository *PhotoRepository)GetMarketPhotos(market int) ([]model.Phot
 func (photoRepository *PhotoRepository)GetMarketPhoto(market int) (model.Photo) {
 	stmt,error := photoRepository.Db.Prepare("SELECT id,content FROM photo WHERE market_id = ? limit 1")
 	if error != nil{
-		fmt.Println(error)
+		log.Println(error)
 	}
 	row := stmt.QueryRow(market)
 	var photo model.Photo
@@ -47,7 +47,7 @@ func (photoRepository *PhotoRepository)Create(photo model.Photo,marketId int) (b
 
 	defer stmt.Close()
 	if error != nil{
-		fmt.Println(error)
+		log.Println(error)
 	}
 	return error == nil
 }
@@ -67,7 +67,7 @@ func (photoRepository *PhotoRepository) Edit(market model.Market) (bool) {
 		market.Id)
 	defer stmt.Close()
 	if error != nil{
-		fmt.Println(error)
+		log.Println(error)
 	}
 	return error == nil
 }
@@ -78,13 +78,13 @@ func parsePhotoRows(rows *sql.Rows, error error) []model.Photo {
 		for rows.Next() {
 			photo, err := parsePhotoRow(rows)
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err)
 			} else {
 				photos = append(photos, photo)
 			}
 		}
 	} else{
-		fmt.Println(error)
+		log.Println(error)
 	}
 	return photos
 
@@ -94,7 +94,7 @@ func parsePhotoRow(rows *sql.Rows) (model.Photo, error) {
 	err := rows.Scan(&photo.Id, &photo.Content)
 
 	if err != nil{
-		fmt.Println(err)
+		log.Println(err)
 	}
 	return photo, err
 }
