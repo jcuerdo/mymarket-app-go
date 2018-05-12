@@ -80,12 +80,15 @@ func LoginUser() gin.HandlerFunc {
 
 		if user.Id != 0 {
 			token := generateToken()
-			userRepository.CreateToken(user.Id, token)
-			c.JSON(http.StatusBadRequest, gin.H{
-				"result": token,
-			})
-			c.AbortWithStatus(http.StatusCreated)
-		}
+			if userRepository.CreateToken(user.Id, token) {
+				c.JSON(http.StatusAccepted, gin.H{
+					"result": token,
+				})
+				c.Abort()
+				}
+			}
+			c.AbortWithStatus(http.StatusUnauthorized)
+
 	}
 }
 func generateToken() string {

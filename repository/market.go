@@ -19,7 +19,6 @@ func (marketRepository *MarketRepository)GetUserMarkets(user int) ([]model.Marke
 	stmt, error := 	marketRepository.Db.Prepare("SELECT id,user_id,name,description,startdate,lat, lon FROM market WHERE active = 1 and user_id = ?")
 	rows, error := stmt.Query(user)
 	defer rows.Close()
-	defer marketRepository.Db.Close()
 	return parseRows(rows, error)
 }
 
@@ -30,7 +29,6 @@ func (marketRepository *MarketRepository)GetMarket(marketId int64) (model.Market
 		return model.Market{}
 	}
 	row := stmt.QueryRow(marketId)
-	defer marketRepository.Db.Close()
 	var market model.Market
 	row.Scan(&market.Id, &market.UserId, &market.Description, &market.Name, &market.Date, &market.Lat, &market.Lon)
 	return market
@@ -57,7 +55,6 @@ func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFil
 		LIMIT ?,?
 			`)
 	defer stmt.Close()
-	defer marketRepository.Db.Close()
 
 	if error != nil {
 		fmt.Println(error)
@@ -107,7 +104,6 @@ func (marketRepository *MarketRepository)Create(market model.Market) int64{
 		true)
 
 	defer stmt.Close()
-	defer marketRepository.Db.Close()
 
  	if error != nil{
  		fmt.Println(error)
@@ -134,7 +130,6 @@ func (marketRepository *MarketRepository) Edit(market model.Market) (bool) {
 		market.Id)
 
 	defer stmt.Close()
-	defer marketRepository.Db.Close()
 
 	if error != nil{
 		fmt.Println(error)

@@ -14,7 +14,6 @@ func (userRepository *UserRepository)GetUser(email string,password string) (mode
 	stmt, error := 	userRepository.Db.Prepare("SELECT id, password, email, fullname, photo,description,role FROM user WHERE email = ? and password = ?")
 	row := stmt.QueryRow(email, password)
 	defer stmt.Close()
-	defer userRepository.Db.Close()
 	if error == nil{
 		user, error := parseUserRow(row)
 		if error == nil{
@@ -28,14 +27,18 @@ func (userRepository *UserRepository)GetUser(email string,password string) (mode
 
 func (userRepository *UserRepository)CreateToken(userId int,token string) (bool) {
 	stmt, error := 	userRepository.Db.Prepare("INSERT INTO token (id,user_id,token) VALUES (null, ? , ?)")
-	_, error = stmt.Exec(userId,token)
 	defer stmt.Close()
-	defer userRepository.Db.Close()
+
+	if error != nil{
+		return false
+	}
+	_, error = stmt.Exec(userId,token)
+
 	if error != nil{
 		fmt.Println(error)
-		return true
+		return false
 	}
-	return false
+	return true
 }
 
 func (userRepository *UserRepository)GetUserIdByToken(token string) (int) {
@@ -47,7 +50,6 @@ func (userRepository *UserRepository)GetUserIdByToken(token string) (int) {
 	row := stmt.QueryRow(token)
 
 	defer stmt.Close()
-	defer userRepository.Db.Close()
 	var userId int
 	error = row.Scan(&userId)
 
@@ -73,7 +75,6 @@ func (userRepository *UserRepository)CreateUser(user model.User) (bool) {
 		user.Description,
 		"USER")
 
-	defer userRepository.Db.Close()
 	defer stmt.Close()
 	if error != nil{
 		fmt.Println(error)

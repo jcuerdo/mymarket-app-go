@@ -72,7 +72,7 @@ func AddMarket() gin.HandlerFunc {
 
 		if market.Name == "" || market.Description == "" || market.Date == "" || market.Lat == 0 || market.Lon == 0 {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "name,description,date,lat,lon are mandatory parameters",
+				"error": "name,description,startdate,lat,lon are mandatory parameters",
 			})
 			c.Abort()
 		}
