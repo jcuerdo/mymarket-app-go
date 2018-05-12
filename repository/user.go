@@ -12,8 +12,14 @@ type UserRepository struct {
 
 func (userRepository *UserRepository)GetUser(email string,password string) (model.User) {
 	stmt, error := 	userRepository.Db.Prepare("SELECT id, password, email, fullname, photo,description,role FROM user WHERE email = ? and password = ?")
-	row := stmt.QueryRow(email, password)
 	defer stmt.Close()
+
+	if error != nil{
+		log.Println(error)
+		return model.User{}
+	}
+
+	row := stmt.QueryRow(email, password)
 	if error == nil{
 		user, error := parseUserRow(row)
 		if error == nil{
@@ -28,6 +34,7 @@ func (userRepository *UserRepository)GetUser(email string,password string) (mode
 func (userRepository *UserRepository)CreateToken(userId int,token string) (bool) {
 	stmt, error := 	userRepository.Db.Prepare("INSERT INTO token (id,user_id,token) VALUES (null, ? , ?)")
 	defer stmt.Close()
+	defer userRepository.Db.Close()
 
 	if error != nil{
 		log.Println(error)

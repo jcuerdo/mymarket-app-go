@@ -85,9 +85,9 @@ func LoginUser() gin.HandlerFunc {
 					"result": token,
 				})
 				c.Abort()
-				}
 			}
-			c.AbortWithStatus(http.StatusUnauthorized)
+		}
+		c.AbortWithStatus(http.StatusUnauthorized)
 
 	}
 }
