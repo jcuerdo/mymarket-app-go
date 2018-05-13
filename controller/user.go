@@ -11,6 +11,7 @@ import (
 	"time"
 	"strconv"
 	"strings"
+	"log"
 )
 
 func AddUser() gin.HandlerFunc {
@@ -41,9 +42,40 @@ func AddUser() gin.HandlerFunc {
 			c.Abort()
 		}
 
-		userRepository.CreateUser(user)
+		if userRepository.CreateUser(user) {
+			c.AbortWithStatus(http.StatusCreated)
+		}
+		c.AbortWithStatus(http.StatusConflict)
+	}
+}
 
-		c.AbortWithStatus(http.StatusCreated)
+func GetUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userRepository := database.GetUserRepository()
+		userId, exists := c.Get("userId")
+		if !exists{
+			log.Println("User not exists")
+			c.AbortWithStatus(http.StatusNotFound)
+		}
+		user := userRepository.GetUserById(userId.(int))
+		if  user.Id > 0{
+			log.Println("User found")
+			userExportable := model.UserExportable{
+				user.Id,
+				user.Email,
+				user.Password,
+				user.FullName.String,
+				user.Photo.String,
+				user.Description.String,
+				user.Role.String,
+			}
+			c.JSON(http.StatusOK, gin.H{
+				"result": userExportable,
+			})
+			c.Abort()
+		}
+		log.Println("User not found")
+		c.AbortWithStatus(http.StatusNotFound)
 	}
 }
 

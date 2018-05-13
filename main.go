@@ -38,15 +38,18 @@ func main() {
 	router.Run(":8080")
 }
 func definePublicRoutes(public *gin.RouterGroup) {
+	//Markets
 	public.GET("/market/:marketId/photos", controller.GetMarketPhotos())
 	public.GET("/market/:marketId/photo", controller.GetMarketPhoto())
 	public.GET("/market", controller.GetMarkets())
+	//User
 	public.POST("/user/create", controller.AddUser())
 	public.OPTIONS("/user/create", api.Options())
 	public.POST("/user/login", controller.LoginUser())
 	public.OPTIONS("/user/login", api.Options())
 }
 func definePrivateRoutes(private *gin.RouterGroup) {
+	//Markets
 	private.GET("/market", controller.GetUserMarkets())
 	private.POST("/market", controller.AddMarket())
 	private.OPTIONS("/market", api.Options())
@@ -54,6 +57,9 @@ func definePrivateRoutes(private *gin.RouterGroup) {
 	private.OPTIONS("/market/:marketId/edit", api.Options())
 	private.POST("/market/:marketId/photo", controller.AddPhoto())
 	private.OPTIONS("/market/:marketId/photo", api.Options())
+	//Users
+	private.GET("/user", controller.GetUser())
+
 }
 func defineGroups(router *gin.Engine) (*gin.RouterGroup, *gin.RouterGroup) {
 	public := router.Group("/public/", api.Cors())

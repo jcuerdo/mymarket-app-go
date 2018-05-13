@@ -31,6 +31,28 @@ func (userRepository *UserRepository)GetUser(email string,password string) (mode
 	return model.User{}
 }
 
+func (userRepository *UserRepository)GetUserById(id int) (model.User) {
+	stmt, error := 	userRepository.Db.Prepare("SELECT id, password, email, fullname, photo,description,role FROM user WHERE id = ?")
+	defer stmt.Close()
+	defer userRepository.Db.Close()
+
+	if error != nil{
+		log.Println(error)
+		return model.User{}
+	}
+
+	row := stmt.QueryRow(id)
+	if error == nil{
+		user, error := parseUserRow(row)
+		if error == nil{
+			return user
+		}
+	}
+
+	log.Println(error)
+	return model.User{}
+}
+
 func (userRepository *UserRepository)CreateToken(userId int,token string) (bool) {
 	stmt, error := 	userRepository.Db.Prepare("INSERT INTO token (id,user_id,token) VALUES (null, ? , ?)")
 	defer stmt.Close()
