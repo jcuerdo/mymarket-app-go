@@ -42,6 +42,8 @@ func definePublicRoutes(public *gin.RouterGroup) {
 	public.GET("/market/:marketId/photos", controller.GetMarketPhotos())
 	public.GET("/market/:marketId/photo", controller.GetMarketPhoto())
 	public.GET("/market", controller.GetMarkets())
+	public.GET("/market/:marketId", controller.GetMarket())
+
 	//User
 	public.POST("/user/create", controller.AddUser())
 	public.OPTIONS("/user/create", api.Options())
