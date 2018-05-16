@@ -31,16 +31,18 @@ func GetMarkets() gin.HandlerFunc {
 
 func GetMarket() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		marketId, _ := strconv.ParseInt(c.Query("marketId"),10,64)
-
-		marketRepository := database.GetMarketRepository()
-		defer marketRepository.Db.Close()
-		market := marketRepository.GetMarket(marketId)
-		if market.Id > 0 {
-			c.JSON(http.StatusOK, gin.H{
-				"result": market,
-			})
-			c.Abort()
+		marketIdParameter := c.Param("marketId")
+		marketId, err := strconv.ParseInt(marketIdParameter, 10, 64)
+		if err == nil {
+			marketRepository := database.GetMarketRepository()
+			defer marketRepository.Db.Close()
+			market := marketRepository.GetMarket(marketId)
+			if market.Id > 0 {
+				c.JSON(http.StatusOK, gin.H{
+					"result": market,
+				})
+				c.Abort()
+			}
 		}
 		c.AbortWithStatus(http.StatusNotFound)
 	}
