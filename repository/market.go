@@ -132,6 +132,9 @@ func (marketRepository *MarketRepository) Edit(market model.Market) (bool) {
 		name = ?, description = ? , startdate = ?,lat = ?,lon = ?
 		WHERE id = ?`)
 
+	defer stmt.Close()
+	defer marketRepository.Db.Close()
+
 	_, error = stmt.Exec(
 		market.Name,
 		market.Description,
@@ -139,9 +142,6 @@ func (marketRepository *MarketRepository) Edit(market model.Market) (bool) {
 		market.Lat,
 		market.Lon,
 		market.Id)
-
-	defer stmt.Close()
-	defer marketRepository.Db.Close()
 
 	if error != nil{
 		log.Println(error)
