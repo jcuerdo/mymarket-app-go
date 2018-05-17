@@ -137,6 +137,10 @@ func EditMarket() gin.HandlerFunc {
 			c.Abort()
 		}
 
+		datetime, _ := time.Parse(time.RFC3339,marketModifications.Date)
+
+		marketModifications.Date = datetime.Format("2006-01-02 15:04:05")
+
 		marketRepository := database.GetMarketRepository()
 		marketDb := marketRepository.GetMarket(marketModifications.Id)
 
@@ -157,9 +161,10 @@ func EditMarket() gin.HandlerFunc {
 			} else{
 				c.AbortWithStatus(http.StatusNotModified)
 			}
+		} else{
+			c.AbortWithStatus(http.StatusUnauthorized)
 		}
 
-		c.AbortWithStatus(http.StatusUnauthorized)
 
 	}
 }
