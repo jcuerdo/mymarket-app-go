@@ -32,9 +32,15 @@ func GetMarketPhoto() gin.HandlerFunc {
 		if err == nil {
 			photoRepository := database.GetPhotoRepository()
 			market := photoRepository.GetMarketPhoto(marketId)
-			c.JSON(http.StatusOK, gin.H{
-				"result": market,
-			})
+			if market.Id > 0 {
+				c.JSON(http.StatusOK, gin.H{
+					"result": market,
+				})
+				c.Abort()
+			} else {
+				c.AbortWithStatus(http.StatusNotFound)
+			}
+
 		}
 	}
 }
