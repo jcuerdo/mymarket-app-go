@@ -55,6 +55,20 @@ func (photoRepository *PhotoRepository)Create(photo model.Photo,marketId int) (b
 	return error == nil
 }
 
+func (photoRepository *PhotoRepository)Delete(marketId int) (bool) {
+	stmt, error := 	photoRepository.Db.Prepare(
+		`DELETE FROM photo where market_id=?`)
+
+	stmt.Exec(marketId)
+
+	defer stmt.Close()
+	defer photoRepository.Db.Close()
+	if error != nil{
+		log.Println(error)
+	}
+	return error == nil
+}
+
 func (photoRepository *PhotoRepository) Edit(market model.Market) (bool) {
 	stmt, error := 	photoRepository.Db.Prepare(
 		`

@@ -77,3 +77,18 @@ func AddPhoto() gin.HandlerFunc {
 		c.AbortWithStatus(http.StatusCreated)
 	}
 	}
+
+func DeletePhotos() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		marketIdParameter := c.Param("marketId")
+		marketId, err := strconv.Atoi(marketIdParameter)
+		if err != nil{
+			c.AbortWithStatus(http.StatusBadRequest)
+		}
+		photoRepository := database.GetPhotoRepository()
+
+		photoRepository.Delete(marketId)
+
+		c.AbortWithStatus(http.StatusCreated)
+	}
+}

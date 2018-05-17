@@ -59,6 +59,8 @@ func definePrivateRoutes(private *gin.RouterGroup) {
 	private.OPTIONS("/market/:marketId/edit", api.Options())
 	private.POST("/market/:marketId/photo", controller.AddPhoto())
 	private.OPTIONS("/market/:marketId/photo", api.Options())
+	private.DELETE("/market/:marketId/photo", controller.DeletePhotos())
+
 	//Users
 	private.GET("/user", controller.GetUser())
 
