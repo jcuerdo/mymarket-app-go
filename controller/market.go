@@ -41,6 +41,7 @@ func GetMarket() gin.HandlerFunc {
 				"result": market,
 			})
 			c.Abort()
+			return
 		}
 		c.AbortWithStatus(http.StatusNotFound)
 	}
@@ -76,6 +77,7 @@ func AddMarket() gin.HandlerFunc {
 				"error": "Invalid parameters " + err.Error(),
 			})
 			c.Abort()
+			return
 		}
 
 		market := model.Market{}
@@ -85,6 +87,7 @@ func AddMarket() gin.HandlerFunc {
 				"error": "Invalid parameters " + err.Error(),
 			})
 			c.Abort()
+			return
 		}
 
 		if market.Name == "" || market.Description == "" || market.Date == "" || market.Lat == 0 || market.Lon == 0 {
@@ -92,6 +95,7 @@ func AddMarket() gin.HandlerFunc {
 				"error": "name,description,startdate,lat,lon are mandatory parameters",
 			})
 			c.Abort()
+			return
 		}
 
 		datetime, _ := time.Parse(time.RFC3339,market.Date)
@@ -105,6 +109,7 @@ func AddMarket() gin.HandlerFunc {
 			"result": market,
 		})
 		c.Abort()
+		return
 	}
 }
 
@@ -118,6 +123,7 @@ func EditMarket() gin.HandlerFunc {
 				"error": "Invalid parameters " + err.Error(),
 			})
 			c.Abort()
+			return
 		}
 
 		marketModifications := model.Market{}
@@ -127,12 +133,14 @@ func EditMarket() gin.HandlerFunc {
 				"error": "Invalid parameters " + err.Error(),
 			})
 			c.Abort()
+			return
 		}
 		if marketModifications.Id == 0 || marketModifications.Name == "" || marketModifications.Description == "" || marketModifications.Date == "" || marketModifications.Lat == 0 || marketModifications.Lon == 0 {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "name,description,date,lat,lon are mandatory parameters",
 			})
 			c.Abort()
+			return
 		}
 
 		datetime, _ := time.Parse(time.RFC3339,marketModifications.Date)

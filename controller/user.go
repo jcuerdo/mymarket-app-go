@@ -24,6 +24,7 @@ func AddUser() gin.HandlerFunc {
 				"error": "Invalid parameters " + err.Error(),
 			})
 			c.Abort()
+			return
 		}
 
 		user := model.User{}
@@ -33,6 +34,7 @@ func AddUser() gin.HandlerFunc {
 				"error": "Invalid parameters " + err.Error(),
 			})
 			c.Abort()
+			return
 		}
 
 		if user.Email == "" || user.Password == ""{
@@ -40,6 +42,7 @@ func AddUser() gin.HandlerFunc {
 				"error": "email and password is a mandatory parameter",
 			})
 			c.Abort()
+			return
 		}
 
 		if userRepository.CreateUser(user) {
@@ -73,6 +76,7 @@ func GetUser() gin.HandlerFunc {
 				"result": userExportable,
 			})
 			c.Abort()
+			return
 		}
 		log.Println("User not found")
 		c.AbortWithStatus(http.StatusNotFound)
@@ -88,6 +92,7 @@ func LoginUser() gin.HandlerFunc {
 				"error": "Invalid parameters " + err.Error(),
 			})
 			c.Abort()
+			return
 		}
 
 		user := model.User{}
@@ -97,6 +102,7 @@ func LoginUser() gin.HandlerFunc {
 				"error": "Invalid parameters " + err.Error(),
 			})
 			c.Abort()
+			return
 		}
 
 		if user.Email == "" || user.Password == ""{
@@ -104,6 +110,7 @@ func LoginUser() gin.HandlerFunc {
 				"error": "email and password is a mandatory parameter",
 			})
 			c.Abort()
+			return
 		}
 
 		userRepository := database.GetUserRepository()
@@ -117,6 +124,7 @@ func LoginUser() gin.HandlerFunc {
 					"result": token,
 				})
 				c.Abort()
+				return
 			}
 		}
 		c.AbortWithStatus(http.StatusUnauthorized)

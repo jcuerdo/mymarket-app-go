@@ -38,3 +38,8 @@ func GetUserRepository() (repository.UserRepository){
 	userRepository := repository.UserRepository{getDatabase()}
 	return userRepository
 }
+
+func GetCommentRepository() (repository.CommentRepository){
+	commentRepository := repository.CommentRepository{getDatabase()}
+	return commentRepository
+}
