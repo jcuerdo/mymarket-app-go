@@ -32,9 +32,15 @@ func GetMarketPhoto() gin.HandlerFunc {
 		if err == nil {
 			photoRepository := database.GetPhotoRepository()
 			market := photoRepository.GetMarketPhoto(marketId)
-			c.JSON(http.StatusOK, gin.H{
-				"result": market,
-			})
+			if market.Id > 0 {
+				c.JSON(http.StatusOK, gin.H{
+					"result": market,
+				})
+				c.Abort()
+			} else {
+				c.AbortWithStatus(http.StatusNotFound)
+			}
+
 		}
 	}
 }
@@ -80,3 +86,18 @@ func AddPhoto() gin.HandlerFunc {
 		c.AbortWithStatus(http.StatusCreated)
 	}
 	}
+
+func DeletePhotos() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		marketIdParameter := c.Param("marketId")
+		marketId, err := strconv.Atoi(marketIdParameter)
+		if err != nil{
+			c.AbortWithStatus(http.StatusBadRequest)
+		}
+		photoRepository := database.GetPhotoRepository()
+
+		photoRepository.Delete(marketId)
+
+		c.AbortWithStatus(http.StatusCreated)
+	}
+}

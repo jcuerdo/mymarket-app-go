@@ -137,7 +137,7 @@ func EditMarket() gin.HandlerFunc {
 		}
 		if marketModifications.Id == 0 || marketModifications.Name == "" || marketModifications.Description == "" || marketModifications.Date == "" || marketModifications.Lat == 0 || marketModifications.Lon == 0 {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "name,description,date,lat,lon are mandatory parameters",
+				"error": "id,name,description,date,lat,lon are mandatory parameters",
 			})
 			c.Abort()
 			return

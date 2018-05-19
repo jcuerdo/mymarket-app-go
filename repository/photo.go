@@ -17,22 +17,25 @@ func (photoRepository *PhotoRepository)GetMarketPhotos(market int) ([]model.Phot
 	rows , error := stmt.Query(market)
 	if error != nil{
 		log.Println(error)
+		return []model.Photo{}
 	}
 	return parsePhotoRows(rows, error)
 }
 
 func (photoRepository *PhotoRepository)GetMarketPhoto(market int) (model.Photo) {
 	stmt,error := photoRepository.Db.Prepare("SELECT id,content FROM photo WHERE market_id = ? limit 1")
-	if error != nil{
-		log.Println(error)
-	}
-	row := stmt.QueryRow(market)
-	var photo model.Photo
 	defer stmt.Close()
 	defer photoRepository.Db.Close()
-	row.Scan(&photo.Id, &photo.Content)
+	if error != nil{
+		log.Println(error)
+		return model.Photo{}
+	} else{
+		row := stmt.QueryRow(market)
+		var photo model.Photo
+		row.Scan(&photo.Id, &photo.Content)
 
-	return photo
+		return photo
+	}
 }
 
 func (photoRepository *PhotoRepository)Create(photo model.Photo,marketId int) (bool) {
@@ -46,6 +49,20 @@ func (photoRepository *PhotoRepository)Create(photo model.Photo,marketId int) (b
 	stmt.Exec(
 		photo.Content,
 		marketId)
+
+	defer stmt.Close()
+	defer photoRepository.Db.Close()
+	if error != nil{
+		log.Println(error)
+	}
+	return error == nil
+}
+
+func (photoRepository *PhotoRepository)Delete(marketId int) (bool) {
+	stmt, error := 	photoRepository.Db.Prepare(
+		`DELETE FROM photo where market_id=?`)
+
+	stmt.Exec(marketId)
 
 	defer stmt.Close()
 	defer photoRepository.Db.Close()

@@ -32,7 +32,7 @@ func (marketRepository *MarketRepository)GetMarket(marketId int64) (model.Market
 	row := stmt.QueryRow(marketId)
 	defer marketRepository.Db.Close()
 	var market model.Market
-	row.Scan(&market.Id, &market.UserId, &market.Description, &market.Name, &market.Date, &market.Lat, &market.Lon)
+	row.Scan(&market.Id, &market.UserId, &market.Name, &market.Description, &market.Date, &market.Lat, &market.Lon)
 	return market
 }
 
@@ -170,7 +170,7 @@ func parseRows(rows *sql.Rows, error error) []model.Market {
 }
 func parseRow(rows *sql.Rows) (model.Market, error) {
 	var market model.Market
-	err := rows.Scan(&market.Id, &market.UserId, &market.Description, &market.Name, &market.Date, &market.Lat, &market.Lon)
+	err := rows.Scan(&market.Id, &market.UserId, &market.Name, &market.Description, &market.Date, &market.Lat, &market.Lon)
 	if err != nil{
 		log.Println(err)
 	}
