@@ -48,10 +48,10 @@ func (commentRepository *CommentRepository)Create(comment model.Comment) (bool) 
 	return error == nil
 }
 
-func (commentRepository *CommentRepository)Delete(comment model.Comment) (bool) {
+func (commentRepository *CommentRepository)Delete(userId int , commentId int) (bool) {
 	stmt, error := 	commentRepository.Db.Prepare(`DELETE FROM comment WHERE id = ? and user_id = ?`)
 
-	result, _ := stmt.Exec(comment.Id, comment.UserId)
+	result, _ := stmt.Exec(commentId, userId)
 
 	defer stmt.Close()
 	defer commentRepository.Db.Close()

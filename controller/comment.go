@@ -8,6 +8,7 @@ import (
 	"github.com/jcuerdo/mymarket-app-go/model"
 	"encoding/json"
 	"strconv"
+	"log"
 )
 
 func GetMarketComments() gin.HandlerFunc {
@@ -81,39 +82,14 @@ func AddComment() gin.HandlerFunc {
 
 func DeleteComment() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		data, err := ioutil.ReadAll(c.Request.Body)
-		if err != nil {
-			c.Writer.WriteHeader(http.StatusBadRequest)
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalid parameters " + err.Error(),
-			})
-			c.Abort()
-			return
-		}
 
-		comment := model.Comment{}
+		userId, existsUser := c.Get("userId")
+		commentId, _ := strconv.Atoi(c.Param("commentId"))
 
-		if err := json.Unmarshal(data, &comment); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalid parameters " + err.Error(),
-			})
-			c.Abort()
-			return
-		}
-
-		if comment.Id == 0 {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "id is a mandatory parameter",
-			})
-			c.Abort()
-			return
-		}
-
-		userId, exists := c.Get("userId")
-		if _, ok := userId.(int); exists && ok {
-			comment.UserId = userId.(int)
+		if _, ok := userId.(int); existsUser && ok && commentId > 0 {
 			commentRepository := database.GetCommentRepository()
-			if commentRepository.Delete(comment) {
+			log.Println(commentId,userId)
+			if commentRepository.Delete(userId.(int),commentId) {
 				c.AbortWithStatus(http.StatusCreated)
 			} else {
 				c.AbortWithStatus(http.StatusNotFound)
