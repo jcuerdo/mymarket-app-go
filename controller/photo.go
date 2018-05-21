@@ -40,7 +40,6 @@ func GetMarketPhoto() gin.HandlerFunc {
 			} else {
 				c.AbortWithStatus(http.StatusNotFound)
 			}
-
 		}
 	}
 }
@@ -60,7 +59,6 @@ func AddPhoto() gin.HandlerFunc {
 				"error": "Invalid parameters " + err.Error(),
 			})
 			c.Abort()
-			return
 		}
 
 		photo := model.Photo{}
@@ -70,7 +68,6 @@ func AddPhoto() gin.HandlerFunc {
 				"error": "Invalid parameters " + err.Error(),
 			})
 			c.Abort()
-			return
 		}
 
 		if photo.Content == ""{
@@ -78,7 +75,6 @@ func AddPhoto() gin.HandlerFunc {
 				"error": "content is a mandatory parameter",
 			})
 			c.Abort()
-			return
 		}
 
 		photoRepository.Create(photo,marketId)
