@@ -13,9 +13,9 @@ type CommentRepository struct {
 func (commentRepository *CommentRepository)GetMarketComments(market int) ([]model.CommentResult) {
 	stmt, error := 	commentRepository.Db.Prepare(
 		`
-		SELECT c.id,c.market_id,u.id as user_id,u.email,u.fullname,u.photo,c.content FROM comment c
+		SELECT c.id,c.market_id,u.id as user_id,u.email,u.fullname,u.photo,c.content,c.date FROM comment c
 		INNER JOIN user u on u.id = c.user_id
-		WHERE market_id = ?`)
+		WHERE market_id = ? ORDER BY c.date DESC `)
 	defer stmt.Close()
 	defer commentRepository.Db.Close()
 	rows , error := stmt.Query(market)
@@ -83,7 +83,7 @@ func parseCommentRows(rows *sql.Rows, error error) []model.CommentResult {
 }
 func parseCommentRow(rows *sql.Rows) (model.CommentResult, error) {
 	var comment model.CommentResult
-	err := rows.Scan(&comment.Id, &comment.MarketId, &comment.User.Id,&comment.User.Email, &comment.User.FullName,&comment.User.Photo, &comment.Content)
+	err := rows.Scan(&comment.Id, &comment.MarketId, &comment.User.Id,&comment.User.Email, &comment.User.FullName,&comment.User.Photo, &comment.Content, &comment.Date)
 
 	if err != nil{
 		log.Println(err)

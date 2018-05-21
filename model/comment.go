@@ -12,4 +12,6 @@ type CommentResult struct {
 	MarketId int    `json:"market_id"`
 	User     UserComment   `json:"user"`
 	Content  string `json:"content"`
+	Date  string `json:"date"`
+
 }
