@@ -31,7 +31,7 @@ func GetMarkets() gin.HandlerFunc {
 
 func GetMarket() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		marketId, _ := strconv.ParseInt(c.Query("marketId"),10,64)
+		marketId, _ := strconv.ParseInt(c.Param("marketId"),10,64)
 
 		marketRepository := database.GetMarketRepository()
 		defer marketRepository.Db.Close()

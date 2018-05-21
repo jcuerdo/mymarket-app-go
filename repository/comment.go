@@ -10,8 +10,12 @@ type CommentRepository struct {
 	Db *sql.DB
 }
 
-func (commentRepository *CommentRepository)GetMarketComments(market int) ([]model.Comment) {
-	stmt, error := 	commentRepository.Db.Prepare("SELECT * FROM comment WHERE market_id = ?")
+func (commentRepository *CommentRepository)GetMarketComments(market int) ([]model.CommentResult) {
+	stmt, error := 	commentRepository.Db.Prepare(
+		`
+		SELECT c.id,c.market_id,u.id as user_id,u.email,u.fullname,u.photo,c.content FROM comment c
+		INNER JOIN user u on u.id = c.user_id
+		WHERE market_id = ?`)
 	defer stmt.Close()
 	defer commentRepository.Db.Close()
 	rows , error := stmt.Query(market)
@@ -60,8 +64,8 @@ func (commentRepository *CommentRepository)Delete(comment model.Comment) (bool) 
 	return affectedRows > 0
 }
 
-func parseCommentRows(rows *sql.Rows, error error) []model.Comment {
-	var comments []model.Comment
+func parseCommentRows(rows *sql.Rows, error error) []model.CommentResult {
+	var comments []model.CommentResult
 	if error == nil {
 		for rows.Next() {
 			comment, err := parseCommentRow(rows)
@@ -77,9 +81,9 @@ func parseCommentRows(rows *sql.Rows, error error) []model.Comment {
 	return comments
 
 }
-func parseCommentRow(rows *sql.Rows) (model.Comment, error) {
-	var comment model.Comment
-	err := rows.Scan(&comment.Id, &comment.MarketId, &comment.UserId, &comment.Content)
+func parseCommentRow(rows *sql.Rows) (model.CommentResult, error) {
+	var comment model.CommentResult
+	err := rows.Scan(&comment.Id, &comment.MarketId, &comment.User.Id,&comment.User.Email, &comment.User.FullName,&comment.User.Photo, &comment.Content)
 
 	if err != nil{
 		log.Println(err)
