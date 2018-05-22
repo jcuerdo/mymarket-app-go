@@ -1,16 +1,14 @@
 package model
 
-type Comment struct {
+type Assistance struct {
 	Id       int    `json:"id"`
 	MarketId int    `json:"market_id"`
 	UserId   int    `json:"user_id"`
-	Content  string `json:"content"`
 }
 
-type CommentResult struct {
+type AssistanceResult struct {
 	Id       int    `json:"id"`
 	MarketId int    `json:"market_id"`
-	User     UserComment   `json:"user"`
-	Content  string `json:"content"`
+	User     UserAssistance    `json:"user_id"`
 	Date  string `json:"date"`
 }

@@ -43,3 +43,8 @@ func GetCommentRepository() (repository.CommentRepository){
 	commentRepository := repository.CommentRepository{getDatabase()}
 	return commentRepository
 }
+
+func GetAssistanceRepository() (repository.AssistanceRepository){
+	assistanceRepository := repository.AssistanceRepository{getDatabase()}
+	return assistanceRepository
+}

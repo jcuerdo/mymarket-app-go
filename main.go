@@ -47,6 +47,9 @@ func definePublicRoutes(public *gin.RouterGroup) {
 	//Market Comments
 	public.GET("/market/:marketId/comment", controller.GetMarketComments())
 
+	//Market Assistance
+	public.GET("/market/:marketId/assistance", controller.GetMarketAssistances())
+
 	//User
 	public.POST("/user/create", controller.AddUser())
 	public.OPTIONS("/user/create", api.Options())
@@ -64,6 +67,7 @@ func definePrivateRoutes(private *gin.RouterGroup) {
 	//Market photos
 	private.POST("/market/:marketId/photo", controller.AddPhoto())
 	private.OPTIONS("/market/:marketId/photo", api.Options())
+	private.DELETE("/market/:marketId/photo", controller.DeletePhotos())
 
 	//Market comment
 	private.POST("/market/:marketId/comment", controller.AddComment())
@@ -71,7 +75,12 @@ func definePrivateRoutes(private *gin.RouterGroup) {
 	private.DELETE("/market/:marketId/comment/:commentId", controller.DeleteComment())
 	private.OPTIONS("/market/:marketId/comment/:commentId", api.Options())
 
-	private.DELETE("/market/:marketId/photo", controller.DeletePhotos())
+	//Market assistance
+	private.POST("/market/:marketId/assistance", controller.AddAssistance())
+	private.OPTIONS("/market/:marketId/assistance", api.Options())
+	private.DELETE("/market/:marketId/assistance/:assistanceId", controller.DeleteAssistance())
+	private.OPTIONS("/market/:marketId/assistance/:assistanceId", api.Options())
+
 
 	//Users
 	private.GET("/user", controller.GetUser())

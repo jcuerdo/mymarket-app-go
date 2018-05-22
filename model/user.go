@@ -19,6 +19,13 @@ type UserComment struct {
 	Photo        sql.NullString `json:"photo"`
 }
 
+type UserAssistance struct {
+	Id           int    `json:"id"`
+	Email      	 string 		`json:"email"`
+	FullName     sql.NullString `json:"fullname"`
+	Photo        sql.NullString `json:"photo"`
+}
+
 
 type UserExportable struct {
 	Id          int    `json:"id"`
