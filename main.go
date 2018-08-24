@@ -85,6 +85,9 @@ func definePrivateRoutes(private *gin.RouterGroup) {
 	//Users
 	private.GET("/user", controller.GetUser())
 
+	private.POST("/user/firebase/token/:firebasetoken", controller.SendFirebaseToken())
+	private.OPTIONS("/user/firebase/token/:firebasetoken", api.Options())
+
 }
 func defineGroups(router *gin.Engine) (*gin.RouterGroup, *gin.RouterGroup) {
 	public := router.Group("/public/", api.Cors())

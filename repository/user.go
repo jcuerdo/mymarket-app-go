@@ -71,6 +71,24 @@ func (userRepository *UserRepository)CreateToken(userId int,token string) (bool)
 	return true
 }
 
+func (userRepository *UserRepository)UpdateFirebaseToken(userId int,firebaseToken string) (bool) {
+	stmt, error := 	userRepository.Db.Prepare("UPDATE user SET firebase_token = ? where id = ?")
+	defer stmt.Close()
+	defer userRepository.Db.Close()
+
+	if error != nil{
+		log.Println(error)
+		return false
+	}
+	_, error = stmt.Exec(firebaseToken,userId)
+
+	if error != nil{
+		log.Println(error)
+		return false
+	}
+	return true
+}
+
 func (userRepository *UserRepository)GetUserIdByToken(token string) (int) {
 	stmt, error := userRepository.Db.Prepare(
 		`

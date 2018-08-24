@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"log"
-)
+	)
 
 func AddUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -131,6 +131,28 @@ func LoginUser() gin.HandlerFunc {
 
 	}
 }
+
+func SendFirebaseToken() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		userId, exists := c.Get("userId")
+		firebaseToken := c.Param("firebasetoken")
+
+		if _, ok := userId.(int); exists && ok && firebaseToken != "" {
+			userRepository := database.GetUserRepository()
+			if userRepository.UpdateFirebaseToken(userId.(int), firebaseToken) {
+				c.AbortWithStatus(http.StatusOK)
+			} else{
+				c.AbortWithStatus(http.StatusBadRequest)
+			}
+		} else {
+			c.AbortWithStatus(http.StatusUnauthorized)
+		}
+
+		c.AbortWithStatus(http.StatusUnauthorized)
+	}
+}
+
 func generateToken() string {
 	uuid := uuid.NewV4().String()
 	uuid = strconv.Itoa(int(time.Now().Second())) + strings.Replace(uuid, "-" , "" ,-1) + strconv.Itoa(int(time.Now().Nanosecond()))
