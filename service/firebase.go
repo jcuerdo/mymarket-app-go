@@ -25,6 +25,8 @@ func (fireBase *FireBase) NotifyComment(ids []string, comment model.Comment) (bo
 
 	firebaseClient := fcm.NewFcmClient(fireBase.serverKey)
 	firebaseClient.NewFcmRegIdsMsg(ids, data)
+	notificationPayload := &fcm.NotificationPayload{Title:comment.Content,Sound:"default",Color:"#0000FF"}
+	firebaseClient.SetNotificationPayload(notificationPayload)
 	resp, error := firebaseClient.Send()
 
 	if error != nil {
