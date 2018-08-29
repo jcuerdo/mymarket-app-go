@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"log"
-	"github.com/NaySoftware/go-fcm"
+	"github.com/jcuerdo/mymarket-app-go/service"
 )
 
 func GetMarketComments() gin.HandlerFunc {
@@ -77,18 +77,8 @@ func AddComment() gin.HandlerFunc {
 				owner := userRepository.GetUserTokenMarketOwner(comment.MarketId)
 				ids = append(ids, owner)
 
-				serverKey := "AAAAykf79Vw:APA91bHxXCh8mee1m8ycjrVbF8PsnewZe0ZF5r3DLMpyyTstOrbYo5lIXxX4e9GX1VqBTM8vTMw6o_I3yZymXwnM_MINecGFSaBd65ar7qKDH5-4KDFseu6eHExVbl48WKfgQvGt0GIE"
-
-				data := map[string]string{
-					"msg": comment.Content,
-				}
-
-				firebase := fcm.NewFcmClient(serverKey)
-				firebase.NewFcmRegIdsMsg(ids, data)
-
-				resp, _ := firebase.Send()
-
-				resp.PrintResults()
+				firebaseService := service.NewFireBaseService()
+				firebaseService.NotifyComment(ids, comment)
 
 				c.AbortWithStatus(http.StatusOK)
 
