@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"log"
+	"github.com/NaySoftware/go-fcm"
 )
 
 func GetMarketComments() gin.HandlerFunc {
@@ -68,8 +69,30 @@ func AddComment() gin.HandlerFunc {
 		if _, ok := userId.(int); exists && ok {
 			comment.UserId = userId.(int)
 			commentRepository := database.GetCommentRepository()
+			userRepository := database.GetUserRepository()
+
 			if commentRepository.Create(comment) {
-				c.AbortWithStatus(http.StatusCreated)
+
+				ids := userRepository.GetUserTokensInvolvedInMarket(comment.MarketId)
+				owner := userRepository.GetUserTokenMarketOwner(comment.MarketId)
+				ids = append(ids, owner)
+
+				serverKey := "AAAAykf79Vw:APA91bHxXCh8mee1m8ycjrVbF8PsnewZe0ZF5r3DLMpyyTstOrbYo5lIXxX4e9GX1VqBTM8vTMw6o_I3yZymXwnM_MINecGFSaBd65ar7qKDH5-4KDFseu6eHExVbl48WKfgQvGt0GIE"
+
+				data := map[string]string{
+					"msg": comment.Content,
+				}
+
+				firebase := fcm.NewFcmClient(serverKey)
+				firebase.NewFcmRegIdsMsg(ids, data)
+
+				resp, _ := firebase.Send()
+
+				resp.PrintResults()
+
+				c.AbortWithStatus(http.StatusOK)
+
+
 			} else {
 				c.AbortWithStatus(http.StatusServiceUnavailable)
 			}
