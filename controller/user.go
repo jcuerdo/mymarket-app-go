@@ -148,8 +148,6 @@ func SendFirebaseToken() gin.HandlerFunc {
 		} else {
 			c.AbortWithStatus(http.StatusUnauthorized)
 		}
-
-		c.AbortWithStatus(http.StatusUnauthorized)
 	}
 }
 
