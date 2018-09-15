@@ -82,11 +82,6 @@ func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFil
 		log.Println(error)
 	}
 
-	if error != nil{
-		log.Println(error)
-		return nil
-	}
-
 	return parseRows(rows, error)
 }
 
@@ -149,6 +144,23 @@ func (marketRepository *MarketRepository) Edit(market model.Market) (bool) {
 	return error == nil
 }
 
+func (marketRepository *MarketRepository) Delete(userId int64, marketId int64) (bool) {
+	stmt, error := 	marketRepository.Db.Prepare(
+		`
+		DELETE market
+		WHERE id = ? and user_id = ?`)
+
+	defer stmt.Close()
+	defer marketRepository.Db.Close()
+
+	_, error = stmt.Exec(marketId,userId)
+
+	if error != nil{
+		log.Println(error)
+	}
+	return error == nil
+}
+
 func parseRows(rows *sql.Rows, error error) []model.Market {
 	if error == nil {
 		var markets []model.Market
@@ -163,10 +175,8 @@ func parseRows(rows *sql.Rows, error error) []model.Market {
 		return markets
 	} else{
 		log.Println(error)
+		return nil
 	}
-
-	return nil
-
 }
 func parseRow(rows *sql.Rows) (model.Market, error) {
 	var market model.Market

@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"time"
+	"log"
 )
 
 func GetMarkets() gin.HandlerFunc {
@@ -172,6 +173,31 @@ func EditMarket() gin.HandlerFunc {
 		}
 
 
+	}
+}
+
+func DeleteMarket() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		userId, existsUser := c.Get("userId")
+		marketId, _ := strconv.ParseInt(c.Param("marketId"), 10, 64)
+
+		marketRepository := database.GetMarketRepository()
+		marketDb := marketRepository.GetMarket(marketId)
+
+		if _, ok := userId.(int); existsUser && ok && marketId > 0 {
+			if isOwner(userId.(int), marketDb) {
+				marketRepository := database.GetMarketRepository()
+				log.Println(marketId,userId)
+				if marketRepository.Delete(userId.(int64), marketId) {
+					c.AbortWithStatus(http.StatusCreated)
+				} else {
+					c.AbortWithStatus(http.StatusNotFound)
+				}
+			}
+		} else {
+			c.AbortWithStatus(http.StatusUnauthorized)
+		}
 	}
 }
 
