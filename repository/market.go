@@ -16,7 +16,7 @@ type MarketRepository struct {
 }
 
 func (marketRepository *MarketRepository)GetUserMarkets(user int) ([]model.Market) {
-	stmt, error := 	marketRepository.Db.Prepare("SELECT id,user_id,name,description,startdate,lat, lon FROM market WHERE active = 1 and user_id = ?")
+	stmt, error := 	marketRepository.Db.Prepare("SELECT id,user_id,name,description,startdate,lat, lon, market_type, flexible, place FROM market WHERE active = 1 and user_id = ?")
 	rows, error := stmt.Query(user)
 	defer rows.Close()
 	defer marketRepository.Db.Close()
@@ -24,7 +24,7 @@ func (marketRepository *MarketRepository)GetUserMarkets(user int) ([]model.Marke
 }
 
 func (marketRepository *MarketRepository)GetMarket(marketId int64) (model.Market) {
-	stmt, error := marketRepository.Db.Prepare("SELECT id,user_id,name,description,startdate,lat, lon FROM market WHERE active = 1 and id = ?")
+	stmt, error := marketRepository.Db.Prepare("SELECT id,user_id,name,description,startdate,lat, lon, market_type, flexible, place FROM market WHERE active = 1 and id = ?")
 	if error != nil{
 		log.Println(error)
 		return model.Market{}
@@ -32,7 +32,7 @@ func (marketRepository *MarketRepository)GetMarket(marketId int64) (model.Market
 	row := stmt.QueryRow(marketId)
 	defer marketRepository.Db.Close()
 	var market model.Market
-	row.Scan(&market.Id, &market.UserId, &market.Name, &market.Description, &market.Date, &market.Lat, &market.Lon)
+	row.Scan(&market.Id, &market.UserId, &market.Name, &market.Description, &market.Date, &market.Lat, &market.Lon,&market.Type, &market.Flexible, &market.Place)
 	return market
 }
 
@@ -96,9 +96,9 @@ func (marketRepository *MarketRepository)Create(market model.Market) int64{
 	stmt, error := 	marketRepository.Db.Prepare(
 		`
 		INSERT INTO market
-		(id,name,description,startdate,lat,lon,active,user_id)
+		(id,name,description,startdate,lat,lon,active,user_id, market_type, flexible, place)
 		VALUES
-		(null,?,?,?,?,?,?,?)`)
+		(null,?,?,?,?,?,?,?,?,?,?)`)
 	 result , error := stmt.Exec(
 		market.Name,
 		market.Description,
@@ -106,6 +106,9 @@ func (marketRepository *MarketRepository)Create(market model.Market) int64{
 		market.Lat,
 		market.Lon,
 		market.UserId,
+		market.Type,
+		market.Flexible,
+		market.Place,
 		true)
 
 	defer stmt.Close()
@@ -124,7 +127,7 @@ func (marketRepository *MarketRepository) Edit(market model.Market) (bool) {
 	stmt, error := 	marketRepository.Db.Prepare(
 		`
 		UPDATE market SET
-		name = ?, description = ? , startdate = ?,lat = ?,lon = ?
+		name = ?, description = ? , startdate = ?,lat = ?,lon = ?, market_type = ?, flexible = ?, place = ?
 		WHERE id = ?`)
 
 	defer stmt.Close()
@@ -136,7 +139,11 @@ func (marketRepository *MarketRepository) Edit(market model.Market) (bool) {
 		market.Date,
 		market.Lat,
 		market.Lon,
-		market.Id)
+		market.Id,
+		market.Type,
+		market.Flexible,
+		market.Place,
+		)
 
 	if error != nil{
 		log.Println(error)
@@ -180,7 +187,7 @@ func parseRows(rows *sql.Rows, error error) []model.Market {
 }
 func parseRow(rows *sql.Rows) (model.Market, error) {
 	var market model.Market
-	err := rows.Scan(&market.Id, &market.UserId, &market.Name, &market.Description, &market.Date, &market.Lat, &market.Lon)
+	err := rows.Scan(&market.Id, &market.UserId, &market.Name, &market.Description, &market.Date, &market.Lat, &market.Lon, &market.Type, &market.Flexible, &market.Place)
 	if err != nil{
 		log.Println(err)
 	}
