@@ -151,6 +151,15 @@ func (marketRepository *MarketRepository) Edit(market model.Market) (bool) {
 	return error == nil
 }
 
+func (marketRepository *MarketRepository) Repeat(userId int64, marketId int64, newDate string) (int64) {
+	market := marketRepository.GetMarket(marketId)
+	market.Id = 0
+
+	market.Date = newDate
+
+	return marketRepository.Create(market)
+}
+
 func (marketRepository *MarketRepository) Delete(userId int64, marketId int64) (bool) {
 	stmt, error := 	marketRepository.Db.Prepare(
 		`
