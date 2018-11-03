@@ -1,10 +1,10 @@
 package repository
 
 import (
-	"github.com/jcuerdo/mymarket-app-go/model"
 	"database/sql"
-	"math"
+	"github.com/jcuerdo/mymarket-app-go/model"
 	"log"
+	"math"
 )
 
 const EARTH_RATE  =  6371
@@ -32,13 +32,13 @@ func (marketRepository *MarketRepository)GetUserMarkets(user int) ([]model.Marke
 }
 
 func (marketRepository *MarketRepository)GetMarket(marketId int64) (model.MarketExportable) {
+	defer marketRepository.Db.Close()
 	stmt, error := marketRepository.Db.Prepare("SELECT id,user_id,name,description,startdate,lat, lon, market_type, flexible, place FROM market WHERE active = 1 and id = ?")
 	if error != nil{
 		log.Println(error)
 		return model.MarketExportable{}
 	}
 	row := stmt.QueryRow(marketId)
-	defer marketRepository.Db.Close()
 	var market model.MarketExportable
 	row.Scan(&market.Id, &market.UserId, &market.Name, &market.Description, &market.Date, &market.Lat, &market.Lon, &market.Type, &market.Flexible, &market.Place)
 	return market
@@ -121,11 +121,12 @@ func (marketRepository *MarketRepository)Create(market model.MarketExportable) i
 		market.Date,
 		market.Lat,
 		market.Lon,
+		true,
 		market.UserId,
 		market.Type,
 		market.Flexible,
 		market.Place,
-		true)
+		)
 	if error != nil{
 		log.Println(error)
 		return -1
@@ -178,15 +179,9 @@ func (marketRepository *MarketRepository) Edit(market model.MarketExportable) (b
 	return error == nil
 }
 
-func (marketRepository *MarketRepository) Repeat(userId int, marketId int64, newDate string) (int64) {
-	market := marketRepository.GetMarket(marketId)
-
-	market.Id = 0
+func (marketRepository *MarketRepository) Repeat(market model.MarketExportable, newDate string) (int64) {
 	market.Date = newDate
 
-	if market.UserId != userId {
-		return -1
-	}
 	return marketRepository.Create(market)
 }
 

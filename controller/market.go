@@ -1,15 +1,15 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
-	"net/http"
-	"github.com/jcuerdo/mymarket-app-go/database"
-	"io/ioutil"
-	"github.com/jcuerdo/mymarket-app-go/model"
 	"encoding/json"
+	"github.com/gin-gonic/gin"
+	"github.com/jcuerdo/mymarket-app-go/database"
+	"github.com/jcuerdo/mymarket-app-go/model"
+	"io/ioutil"
+	"log"
+	"net/http"
 	"strconv"
 	"time"
-	"log"
 )
 
 func GetMarkets() gin.HandlerFunc {
@@ -105,6 +105,15 @@ func AddMarket() gin.HandlerFunc {
 
 		market.UserId = userId.(int)
 		lastInsertedId := marketRepository.Create(market)
+
+		if lastInsertedId < 0 {
+			c.JSON(http.StatusBadGateway, gin.H{
+				"error": "Error creating market",
+			})
+			c.Abort()
+			return
+		}
+
 		market.Id = lastInsertedId
 		c.JSON(http.StatusCreated, gin.H{
 			"result": market,
@@ -116,7 +125,6 @@ func AddMarket() gin.HandlerFunc {
 
 func RepeatMarket() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		marketRepository := database.GetMarketRepository()
 		userId, _ := c.Get("userId")
 		data, err := ioutil.ReadAll(c.Request.Body)
 		if err != nil {
@@ -140,27 +148,42 @@ func RepeatMarket() gin.HandlerFunc {
 
 		if market.Date == "" || market.Id == 0 {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "name,description,startdate,lat,lon are mandatory parameters",
+				"error": "id and startdate  are mandatory parameters",
 			})
 			c.Abort()
 			return
 		}
 
-		datetime, _ := time.Parse(time.RFC3339,market.Date)
+		marketRepository := database.GetMarketRepository()
 
-		market.Date = datetime.Format("2006-01-02 15:04:05")
+		marketDb := marketRepository.GetMarket(market.Id)
 
-		market.UserId = userId.(int)
-		lastInsertedId := marketRepository.Repeat(userId.(int), market.Id, market.Date)
-		if lastInsertedId < 0 {
+		if marketDb.UserId != userId {
 			c.JSON(http.StatusForbidden, gin.H{
 				"error": "You have no privileges to clone this market",
 			})
 			c.Abort()
+			return
 		}
-		market.Id = lastInsertedId
+
+		marketRepository = database.GetMarketRepository()
+
+		datetime, _ := time.Parse(time.RFC3339,market.Date)
+		newDate := datetime.Format("2006-01-02 15:04:05")
+
+		lastInsertedId := marketRepository.Repeat(marketDb, newDate)
+
+		if lastInsertedId < 0 {
+			c.JSON(http.StatusBadGateway, gin.H{
+				"error": "Error creating market repetition",
+			})
+			c.Abort()
+			return
+		}
+
+		marketDb.Id = lastInsertedId
 		c.JSON(http.StatusCreated, gin.H{
-			"result": market,
+			"result": marketDb,
 		})
 		c.Abort()
 		return
