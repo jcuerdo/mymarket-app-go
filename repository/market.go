@@ -40,7 +40,7 @@ func (marketRepository *MarketRepository)GetMarket(marketId int64) (model.Market
 	row := stmt.QueryRow(marketId)
 	defer marketRepository.Db.Close()
 	var market model.MarketExportable
-	row.Scan(&market.Id, &market.UserId, &market.Name, &market.Description, &market.Date, &market.Lat, &market.Lon,&market.Type, &market.Flexible, &market.Place)
+	row.Scan(&market.Id, &market.UserId, &market.Name, &market.Description, &market.Date, &market.Lat, &market.Lon, &market.Type, &market.Flexible, &market.Place)
 	return market
 }
 
@@ -60,7 +60,7 @@ func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFil
 
 	stmt, error := 	marketRepository.Db.Prepare(`
 		SELECT
-			id,user_id,name,description,startdate,lat, lon
+			id,user_id,name,description,startdate,lat, lon, market_type, flexible, place
 		FROM
 			market
 		WHERE
