@@ -260,17 +260,28 @@ func DeleteMarket() gin.HandlerFunc {
 		marketRepository := database.GetMarketRepository()
 		marketDb := marketRepository.GetMarket(int64(marketId))
 
+		if marketDb.Id == 0 {
+			c.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+
 		if _, ok := userId.(int); existsUser && ok && marketId > 0 {
 			if isOwner(userId.(int), marketDb) {
 				marketRepository := database.GetMarketRepository()
 				if marketRepository.Delete(userId.(int), int64(marketId)) {
 					c.AbortWithStatus(http.StatusCreated)
+					return
 				} else {
-					c.AbortWithStatus(http.StatusNotFound)
+					c.AbortWithStatus(http.StatusBadGateway)
+					return
 				}
+			} else {
+				c.AbortWithStatus(http.StatusUnauthorized)
+				return
 			}
 		} else {
 			c.AbortWithStatus(http.StatusUnauthorized)
+			return
 		}
 	}
 }

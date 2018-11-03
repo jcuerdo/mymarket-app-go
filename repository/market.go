@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/jcuerdo/mymarket-app-go/model"
 	"log"
 	"math"
@@ -186,7 +187,13 @@ func (marketRepository *MarketRepository) Repeat(market model.MarketExportable, 
 }
 
 func (marketRepository *MarketRepository) Delete(userId int, marketId int64) (bool) {
-	stmt, error := 	marketRepository.Db.Prepare(
+
+	stmtPhotos, error := 	marketRepository.Db.Prepare(
+		`
+		DELETE from photo
+		WHERE market_id = ?`)
+
+	stmt, errorPhotos := 	marketRepository.Db.Prepare(
 		`
 		DELETE from market
 		WHERE id = ? and user_id = ?`)
@@ -197,12 +204,33 @@ func (marketRepository *MarketRepository) Delete(userId int, marketId int64) (bo
 	if error != nil{
 		log.Println(error)
 	}
-	_, error = stmt.Exec(marketId,userId)
+
+	if errorPhotos != nil{
+		log.Println(errorPhotos)
+	}
+
+	_, errorPhotos = stmtPhotos.Exec(marketId)
+	result, error := stmt.Exec(marketId,userId)
+
+	if errorPhotos != nil{
+		log.Println(errorPhotos)
+		return false
+	}
 
 	if error != nil{
 		log.Println(error)
+		return false
 	}
-	return error == nil
+	rowsAffected, error :=  result.RowsAffected()
+
+	fmt.Println(rowsAffected)
+
+	if error != nil{
+		log.Println(error)
+		return false
+	}
+
+	return rowsAffected == 1
 }
 
 func parseRows(rows *sql.Rows, error error) []model.MarketExportable {
