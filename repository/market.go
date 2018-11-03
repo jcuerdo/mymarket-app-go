@@ -237,7 +237,7 @@ func parseRow(rows *sql.Rows) (model.MarketExportable, error) {
 		Name: market.Name,
 		Description : market.Description,
 		Type: market.Type.String,
-		Flexible : market.Flexible.String,
+		Flexible : market.Flexible.Bool,
 		Place : market.Place.String,
 		Date : market.Date,
 		Lat : market.Lat,

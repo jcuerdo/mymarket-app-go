@@ -8,7 +8,7 @@ type Market struct {
 	Name        string         `json:"name"`
 	Description string         `json:"description"`
 	Type        sql.NullString `json:"type"`
-	Flexible    sql.NullString `json:"flexible"`
+	Flexible    sql.NullBool `json:"flexible"`
 	Place       sql.NullString `json:"place"`
 	Date        string         `json:"startdate"`
 	Lat         float32        `json:"lat"`
@@ -21,7 +21,7 @@ type MarketExportable struct {
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
 	Type        string  `json:"type"`
-	Flexible    string  `json:"flexible"`
+	Flexible    bool    `json:"flexible"`
 	Place       string  `json:"place"`
 	Date        string  `json:"startdate"`
 	Lat         float32 `json:"lat"`
