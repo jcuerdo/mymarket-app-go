@@ -81,7 +81,7 @@ func AddMarket() gin.HandlerFunc {
 			return
 		}
 
-		market := model.Market{}
+		market := model.MarketExportable{}
 
 		if err := json.Unmarshal(data, &market); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -114,6 +114,59 @@ func AddMarket() gin.HandlerFunc {
 	}
 }
 
+func RepeatMarket() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		marketRepository := database.GetMarketRepository()
+		userId, _ := c.Get("userId")
+		data, err := ioutil.ReadAll(c.Request.Body)
+		if err != nil {
+			c.Writer.WriteHeader(http.StatusBadRequest)
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid parameters " + err.Error(),
+			})
+			c.Abort()
+			return
+		}
+
+		market := model.MarketExportable{}
+
+		if err := json.Unmarshal(data, &market); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid parameters " + err.Error(),
+			})
+			c.Abort()
+			return
+		}
+
+		if market.Date == "" || market.Id == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "name,description,startdate,lat,lon are mandatory parameters",
+			})
+			c.Abort()
+			return
+		}
+
+		datetime, _ := time.Parse(time.RFC3339,market.Date)
+
+		market.Date = datetime.Format("2006-01-02 15:04:05")
+
+		market.UserId = userId.(int)
+		lastInsertedId := marketRepository.Repeat(userId.(int), market.Id, market.Date)
+		if lastInsertedId < 0 {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": "You have no privileges to clone this market",
+			})
+			c.Abort()
+		}
+		market.Id = lastInsertedId
+		c.JSON(http.StatusCreated, gin.H{
+			"result": market,
+		})
+		c.Abort()
+		return
+	}
+}
+
 func EditMarket() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
@@ -127,7 +180,7 @@ func EditMarket() gin.HandlerFunc {
 			return
 		}
 
-		marketModifications := model.Market{}
+		marketModifications := model.MarketExportable{}
 
 		if err := json.Unmarshal(data, &marketModifications); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -201,6 +254,6 @@ func DeleteMarket() gin.HandlerFunc {
 	}
 }
 
-func isOwner(userId int, market model.Market) (bool) {
+func isOwner(userId int, market model.MarketExportable) (bool) {
 	return userId == market.UserId
 }

@@ -15,28 +15,36 @@ type MarketRepository struct {
 	Db *sql.DB
 }
 
-func (marketRepository *MarketRepository)GetUserMarkets(user int) ([]model.Market) {
+func (marketRepository *MarketRepository)GetUserMarkets(user int) ([]model.MarketExportable) {
 	stmt, error := 	marketRepository.Db.Prepare("SELECT id,user_id,name,description,startdate,lat, lon, market_type, flexible, place FROM market WHERE active = 1 and user_id = ?")
+	if error != nil{
+		log.Println(error)
+		return []model.MarketExportable{}
+	}
 	rows, error := stmt.Query(user)
+	if error != nil{
+		log.Println(error)
+		return []model.MarketExportable{}
+	}
 	defer rows.Close()
 	defer marketRepository.Db.Close()
 	return parseRows(rows, error)
 }
 
-func (marketRepository *MarketRepository)GetMarket(marketId int64) (model.Market) {
+func (marketRepository *MarketRepository)GetMarket(marketId int64) (model.MarketExportable) {
 	stmt, error := marketRepository.Db.Prepare("SELECT id,user_id,name,description,startdate,lat, lon, market_type, flexible, place FROM market WHERE active = 1 and id = ?")
 	if error != nil{
 		log.Println(error)
-		return model.Market{}
+		return model.MarketExportable{}
 	}
 	row := stmt.QueryRow(marketId)
 	defer marketRepository.Db.Close()
-	var market model.Market
+	var market model.MarketExportable
 	row.Scan(&market.Id, &market.UserId, &market.Name, &market.Description, &market.Date, &market.Lat, &market.Lon,&market.Type, &market.Flexible, &market.Place)
 	return market
 }
 
-func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFilter) ([]model.Market) {
+func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFilter) ([]model.MarketExportable) {
 	if marketFilter.Radio > EARTH_RATE {
 		marketFilter.Radio = EARTH_RATE
 	}
@@ -63,6 +71,10 @@ func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFil
 			lon >= ?
 		LIMIT ?,?
 			`)
+	if error != nil{
+		log.Println(error)
+		return []model.MarketExportable{}
+	}
 	defer stmt.Close()
 	defer marketRepository.Db.Close()
 
@@ -92,13 +104,17 @@ func rad2deg(rad float64) float64 {
 	return rad * RADIO / math.Pi
 }
 
-func (marketRepository *MarketRepository)Create(market model.Market) int64{
+func (marketRepository *MarketRepository)Create(market model.MarketExportable) int64{
 	stmt, error := 	marketRepository.Db.Prepare(
 		`
 		INSERT INTO market
 		(id,name,description,startdate,lat,lon,active,user_id, market_type, flexible, place)
 		VALUES
 		(null,?,?,?,?,?,?,?,?,?,?)`)
+	if error != nil{
+		log.Println(error)
+		return -1
+	}
 	 result , error := stmt.Exec(
 		market.Name,
 		market.Description,
@@ -110,7 +126,10 @@ func (marketRepository *MarketRepository)Create(market model.Market) int64{
 		market.Flexible,
 		market.Place,
 		true)
-
+	if error != nil{
+		log.Println(error)
+		return -1
+	}
 	defer stmt.Close()
 	defer marketRepository.Db.Close()
 
@@ -123,16 +142,24 @@ func (marketRepository *MarketRepository)Create(market model.Market) int64{
 	return lastInsertedId
 }
 
-func (marketRepository *MarketRepository) Edit(market model.Market) (bool) {
+func (marketRepository *MarketRepository) Edit(market model.MarketExportable) (bool) {
 	stmt, error := 	marketRepository.Db.Prepare(
 		`
 		UPDATE market SET
 		name = ?, description = ? , startdate = ?,lat = ?,lon = ?, market_type = ?, flexible = ?, place = ?
 		WHERE id = ?`)
 
+	if error != nil{
+		log.Println(error)
+		return false
+	}
+
 	defer stmt.Close()
 	defer marketRepository.Db.Close()
-
+	if error != nil{
+		log.Println(error)
+		return false
+	}
 	_, error = stmt.Exec(
 		market.Name,
 		market.Description,
@@ -151,12 +178,15 @@ func (marketRepository *MarketRepository) Edit(market model.Market) (bool) {
 	return error == nil
 }
 
-func (marketRepository *MarketRepository) Repeat(userId int64, marketId int64, newDate string) (int64) {
+func (marketRepository *MarketRepository) Repeat(userId int, marketId int64, newDate string) (int64) {
 	market := marketRepository.GetMarket(marketId)
-	market.Id = 0
 
+	market.Id = 0
 	market.Date = newDate
 
+	if market.UserId != userId {
+		return -1
+	}
 	return marketRepository.Create(market)
 }
 
@@ -177,9 +207,9 @@ func (marketRepository *MarketRepository) Delete(userId int64, marketId int64) (
 	return error == nil
 }
 
-func parseRows(rows *sql.Rows, error error) []model.Market {
+func parseRows(rows *sql.Rows, error error) []model.MarketExportable {
 	if error == nil {
-		var markets []model.Market
+		var markets []model.MarketExportable
 		for rows.Next() {
 			market, err := parseRow(rows)
 			if err != nil {
@@ -194,11 +224,25 @@ func parseRows(rows *sql.Rows, error error) []model.Market {
 		return nil
 	}
 }
-func parseRow(rows *sql.Rows) (model.Market, error) {
+func parseRow(rows *sql.Rows) (model.MarketExportable, error) {
 	var market model.Market
 	err := rows.Scan(&market.Id, &market.UserId, &market.Name, &market.Description, &market.Date, &market.Lat, &market.Lon, &market.Type, &market.Flexible, &market.Place)
 	if err != nil{
 		log.Println(err)
 	}
-	return market, err
+
+	marketExportable := model.MarketExportable{
+		Id :market.Id,
+		UserId : market.UserId,
+		Name: market.Name,
+		Description : market.Description,
+		Type: market.Type.String,
+		Flexible : market.Flexible.String,
+		Place : market.Place.String,
+		Date : market.Date,
+		Lat : market.Lat,
+		Lon : market.Lon,
+	}
+
+	return marketExportable, err
 }
