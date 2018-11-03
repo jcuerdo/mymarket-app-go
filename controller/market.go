@@ -1,12 +1,13 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
-	"net/http"
-	"github.com/jcuerdo/mymarket-app-go/database"
-	"io/ioutil"
-	"github.com/jcuerdo/mymarket-app-go/model"
 	"encoding/json"
+	"github.com/gin-gonic/gin"
+	"github.com/jcuerdo/mymarket-app-go/database"
+	"github.com/jcuerdo/mymarket-app-go/model"
+	"io/ioutil"
+	"log"
+	"net/http"
 	"strconv"
 	"time"
 )
@@ -80,7 +81,7 @@ func AddMarket() gin.HandlerFunc {
 			return
 		}
 
-		market := model.Market{}
+		market := model.MarketExportable{}
 
 		if err := json.Unmarshal(data, &market); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -104,9 +105,85 @@ func AddMarket() gin.HandlerFunc {
 
 		market.UserId = userId.(int)
 		lastInsertedId := marketRepository.Create(market)
+
+		if lastInsertedId < 0 {
+			c.JSON(http.StatusBadGateway, gin.H{
+				"error": "Error creating market",
+			})
+			c.Abort()
+			return
+		}
+
 		market.Id = lastInsertedId
 		c.JSON(http.StatusCreated, gin.H{
 			"result": market,
+		})
+		c.Abort()
+		return
+	}
+}
+
+func RepeatMarket() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userId, _ := c.Get("userId")
+		data, err := ioutil.ReadAll(c.Request.Body)
+		if err != nil {
+			c.Writer.WriteHeader(http.StatusBadRequest)
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid parameters " + err.Error(),
+			})
+			c.Abort()
+			return
+		}
+
+		market := model.MarketExportable{}
+
+		if err := json.Unmarshal(data, &market); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid parameters " + err.Error(),
+			})
+			c.Abort()
+			return
+		}
+
+		if market.Date == "" || market.Id == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "id and startdate  are mandatory parameters",
+			})
+			c.Abort()
+			return
+		}
+
+		marketRepository := database.GetMarketRepository()
+
+		marketDb := marketRepository.GetMarket(market.Id)
+
+		if marketDb.UserId != userId {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": "You have no privileges to clone this market",
+			})
+			c.Abort()
+			return
+		}
+
+		marketRepository = database.GetMarketRepository()
+
+		datetime, _ := time.Parse(time.RFC3339,market.Date)
+		newDate := datetime.Format("2006-01-02 15:04:05")
+
+		lastInsertedId := marketRepository.Repeat(marketDb, newDate)
+
+		if lastInsertedId < 0 {
+			c.JSON(http.StatusBadGateway, gin.H{
+				"error": "Error creating market repetition",
+			})
+			c.Abort()
+			return
+		}
+
+		marketDb.Id = lastInsertedId
+		c.JSON(http.StatusCreated, gin.H{
+			"result": marketDb,
 		})
 		c.Abort()
 		return
@@ -126,7 +203,7 @@ func EditMarket() gin.HandlerFunc {
 			return
 		}
 
-		marketModifications := model.Market{}
+		marketModifications := model.MarketExportable{}
 
 		if err := json.Unmarshal(data, &marketModifications); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -175,6 +252,31 @@ func EditMarket() gin.HandlerFunc {
 	}
 }
 
-func isOwner(userId int, market model.Market) (bool) {
+func DeleteMarket() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		userId, existsUser := c.Get("userId")
+		marketId, _ := strconv.ParseInt(c.Param("marketId"), 10, 64)
+
+		marketRepository := database.GetMarketRepository()
+		marketDb := marketRepository.GetMarket(marketId)
+
+		if _, ok := userId.(int); existsUser && ok && marketId > 0 {
+			if isOwner(userId.(int), marketDb) {
+				marketRepository := database.GetMarketRepository()
+				log.Println(marketId,userId)
+				if marketRepository.Delete(userId.(int64), marketId) {
+					c.AbortWithStatus(http.StatusCreated)
+				} else {
+					c.AbortWithStatus(http.StatusNotFound)
+				}
+			}
+		} else {
+			c.AbortWithStatus(http.StatusUnauthorized)
+		}
+	}
+}
+
+func isOwner(userId int, market model.MarketExportable) (bool) {
 	return userId == market.UserId
 }

@@ -8,17 +8,25 @@ import (
 )
 
 const PARAMETERS_FILE = "parameters.yml"
+const DRIVER = "mysql"
+const MAX_CONNECTIONS = 10
 
 func getDatabase() (*sql.DB)  {
 	loader := config2.Loader{PARAMETERS_FILE}
 	config :=  loader.Load()
-	db, err := sql.Open("mysql", config.Datasource)
-	db.SetMaxOpenConns(10)
+	db, err := sql.Open(DRIVER, config.Datasource)
+	db.SetMaxOpenConns(MAX_CONNECTIONS)
 
 	if err == nil{
+		pingErr := db.Ping()
+		if pingErr != nil {
+			log.Println(pingErr)
+			panic(pingErr)
+		}
 		return db
 	} else {
-		log.Fatal(err)
+		log.Println(err)
+		panic(err)
 		return nil
 	}
 }
