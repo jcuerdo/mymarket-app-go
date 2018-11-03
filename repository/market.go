@@ -185,15 +185,18 @@ func (marketRepository *MarketRepository) Repeat(market model.MarketExportable, 
 	return marketRepository.Create(market)
 }
 
-func (marketRepository *MarketRepository) Delete(userId int64, marketId int64) (bool) {
+func (marketRepository *MarketRepository) Delete(userId int, marketId int64) (bool) {
 	stmt, error := 	marketRepository.Db.Prepare(
 		`
-		DELETE market
+		DELETE from market
 		WHERE id = ? and user_id = ?`)
 
 	defer stmt.Close()
 	defer marketRepository.Db.Close()
 
+	if error != nil{
+		log.Println(error)
+	}
 	_, error = stmt.Exec(marketId,userId)
 
 	if error != nil{

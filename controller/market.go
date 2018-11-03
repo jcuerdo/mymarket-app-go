@@ -6,7 +6,6 @@ import (
 	"github.com/jcuerdo/mymarket-app-go/database"
 	"github.com/jcuerdo/mymarket-app-go/model"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -256,16 +255,15 @@ func DeleteMarket() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		userId, existsUser := c.Get("userId")
-		marketId, _ := strconv.ParseInt(c.Param("marketId"), 10, 64)
+		marketId, _ := strconv.Atoi(c.Param("marketId"))
 
 		marketRepository := database.GetMarketRepository()
-		marketDb := marketRepository.GetMarket(marketId)
+		marketDb := marketRepository.GetMarket(int64(marketId))
 
 		if _, ok := userId.(int); existsUser && ok && marketId > 0 {
 			if isOwner(userId.(int), marketDb) {
 				marketRepository := database.GetMarketRepository()
-				log.Println(marketId,userId)
-				if marketRepository.Delete(userId.(int64), marketId) {
+				if marketRepository.Delete(userId.(int), int64(marketId)) {
 					c.AbortWithStatus(http.StatusCreated)
 				} else {
 					c.AbortWithStatus(http.StatusNotFound)
