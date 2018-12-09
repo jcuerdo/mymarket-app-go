@@ -37,6 +37,14 @@ type UserExportable struct {
 	Role        string `json:"role"`
 }
 
+type UserExportablePublic struct {
+	Id          int    `json:"id"`
+	Email       string `json:"email"`
+	FullName    string `json:"fullname"`
+	Photo       string `json:"photo"`
+	Description string `json:"description"`
+}
+
 type UserToken struct {
 	FirebaseToken   sql.NullString 	`json:"firebase_token"`
 }

@@ -52,15 +52,23 @@ func AddUser() gin.HandlerFunc {
 	}
 }
 
+func obtainUser(userId int) model.User {
+		userRepository := database.GetUserRepository()
+		user := userRepository.GetUserById(userId)
+		if  user.Id > 0{
+			return user
+		}
+		return model.User{}
+}
+
 func GetUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userRepository := database.GetUserRepository()
 		userId, exists := c.Get("userId")
 		if !exists{
 			log.Println("User not exists")
 			c.AbortWithStatus(http.StatusNotFound)
 		}
-		user := userRepository.GetUserById(userId.(int))
+		user := obtainUser(userId.(int))
 		if  user.Id > 0{
 			log.Println("User found")
 			userExportable := model.UserExportable{
@@ -74,6 +82,35 @@ func GetUser() gin.HandlerFunc {
 			}
 			c.JSON(http.StatusOK, gin.H{
 				"result": userExportable,
+			})
+			c.Abort()
+			return
+		}
+		log.Println("User not found")
+		c.AbortWithStatus(http.StatusNotFound)
+	}
+}
+
+func GetUserPublic() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userIdParameter := c.Param("userId")
+		userId, error := strconv.Atoi(userIdParameter)
+		if error != nil{
+			log.Println("User not exists")
+			c.AbortWithStatus(http.StatusNotFound)
+		}
+		user := obtainUser(userId)
+		if  user.Id > 0{
+			log.Println("User found")
+			userExportablePublic := model.UserExportablePublic{
+				user.Id,
+				user.Email,
+				user.FullName.String,
+				user.Photo.String,
+				user.Description.String,
+			}
+			c.JSON(http.StatusOK, gin.H{
+				"result": userExportablePublic,
 			})
 			c.Abort()
 			return
