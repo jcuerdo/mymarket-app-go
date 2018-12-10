@@ -196,6 +196,31 @@ func (userRepository *UserRepository) CreateUser(user model.User) (bool) {
 	return error == nil
 }
 
+func (userRepository *UserRepository) UpdateUser(user model.User) (bool) {
+	stmt, error := userRepository.Db.Prepare(
+		`
+		UPDATE user
+		set (id,password,email,fullname,photo,description)
+		VALUES
+		(null,?,?,?,?,?,?)
+		WHERE id = ?`)
+
+	_, error = stmt.Exec(
+		user.Password,
+		user.Email,
+		user.FullName,
+		user.Photo,
+		user.Description,
+		user.Id)
+
+	defer userRepository.Db.Close()
+	defer stmt.Close()
+	if error != nil {
+		log.Println(error)
+	}
+	return error == nil
+}
+
 func parseUserRow(row *sql.Row) (model.User, error) {
 	var user model.User
 	err := row.Scan(&user.Id, &user.Password, &user.Email, &user.FullName, &user.Photo, &user.Description, &user.Role)

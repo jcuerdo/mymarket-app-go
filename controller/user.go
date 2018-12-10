@@ -52,6 +52,44 @@ func AddUser() gin.HandlerFunc {
 	}
 }
 
+func UpdateUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userRepository := database.GetUserRepository()
+		data, err := ioutil.ReadAll(c.Request.Body)
+		if err != nil {
+			c.Writer.WriteHeader(http.StatusBadRequest)
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid parameters " + err.Error(),
+			})
+			c.Abort()
+			return
+		}
+
+		user := model.User{}
+
+		if err := json.Unmarshal(data, &user); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid parameters " + err.Error(),
+			})
+			c.Abort()
+			return
+		}
+
+		if user.Id <= 0 || user.Email == "" || user.Password == ""{
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "id, email and password is a mandatory parameter",
+			})
+			c.Abort()
+			return
+		}
+
+		if userRepository.UpdateUser(user) {
+			c.AbortWithStatus(http.StatusCreated)
+		}
+		c.AbortWithStatus(http.StatusConflict)
+	}
+}
+
 func obtainUser(userId int) model.User {
 		userRepository := database.GetUserRepository()
 		user := userRepository.GetUserById(userId)
