@@ -196,16 +196,22 @@ func (userRepository *UserRepository) CreateUser(user model.User) (bool) {
 	return error == nil
 }
 
-func (userRepository *UserRepository) UpdateUser(user model.User) (bool) {
+func (userRepository *UserRepository) UpdateUser(user model.UserUpdate) (bool, error) {
+	defer userRepository.Db.Close()
 	stmt, error := userRepository.Db.Prepare(
 		`
 		UPDATE user
-		set (id,password,email,fullname,photo,description)
-		VALUES
-		(null,?,?,?,?,?,?)
+		SET password = ?,email = ?,fullname = ?,photo = ?,description = ?
 		WHERE id = ?`)
 
-	_, error = stmt.Exec(
+	if error != nil {
+		log.Println(error)
+		return false, error
+	}
+
+	defer stmt.Close()
+
+	result, error := stmt.Exec(
 		user.Password,
 		user.Email,
 		user.FullName,
@@ -213,12 +219,18 @@ func (userRepository *UserRepository) UpdateUser(user model.User) (bool) {
 		user.Description,
 		user.Id)
 
-	defer userRepository.Db.Close()
-	defer stmt.Close()
 	if error != nil {
 		log.Println(error)
+		return false, error
 	}
-	return error == nil
+	rowsAffected, error := result.RowsAffected()
+
+	if error != nil {
+		log.Println(error)
+		return false, error
+	}
+
+	return rowsAffected == 1, nil
 }
 
 func parseUserRow(row *sql.Row) (model.User, error) {

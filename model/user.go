@@ -26,6 +26,14 @@ type UserAssistance struct {
 	Photo        sql.NullString `json:"photo"`
 }
 
+type UserUpdate struct {
+	Id          int    `json:"id"`
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	FullName    string `json:"fullname"`
+	Photo       string `json:"photo"`
+	Description string `json:"description"`
+}
 
 type UserExportable struct {
 	Id          int    `json:"id"`

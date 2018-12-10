@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/go-sql-driver/mysql"
 	"net/http"
 	"github.com/jcuerdo/mymarket-app-go/database"
 	"io/ioutil"
@@ -65,7 +66,7 @@ func UpdateUser() gin.HandlerFunc {
 			return
 		}
 
-		user := model.User{}
+		user := model.UserUpdate{}
 
 		if err := json.Unmarshal(data, &user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -83,10 +84,20 @@ func UpdateUser() gin.HandlerFunc {
 			return
 		}
 
-		if userRepository.UpdateUser(user) {
+		if ok, error := userRepository.UpdateUser(user) ; ok == true {
 			c.AbortWithStatus(http.StatusCreated)
+		} else {
+			if error != nil{
+				mySqlError , isSqlError := error.(*mysql.MySQLError)
+				if isSqlError {
+					if mySqlError.Number == 1062 {
+						c.AbortWithStatus(http.StatusConflict)
+					}
+				}
+
+			}
 		}
-		c.AbortWithStatus(http.StatusConflict)
+		c.AbortWithStatus(http.StatusNotFound)
 	}
 }
 
