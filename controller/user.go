@@ -99,7 +99,7 @@ func UpdateUser() gin.HandlerFunc {
 
 			}
 		}
-		c.AbortWithStatus(http.StatusNotFound)
+		c.AbortWithStatus(http.StatusNotModified)
 		return
 	}
 }
