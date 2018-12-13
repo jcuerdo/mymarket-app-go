@@ -86,18 +86,21 @@ func UpdateUser() gin.HandlerFunc {
 
 		if ok, error := userRepository.UpdateUser(user) ; ok == true {
 			c.AbortWithStatus(http.StatusCreated)
+			return
 		} else {
 			if error != nil{
 				mySqlError , isSqlError := error.(*mysql.MySQLError)
 				if isSqlError {
 					if mySqlError.Number == 1062 {
 						c.AbortWithStatus(http.StatusConflict)
+						return
 					}
 				}
 
 			}
 		}
 		c.AbortWithStatus(http.StatusNotFound)
+		return
 	}
 }
 
