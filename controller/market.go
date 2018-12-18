@@ -66,6 +66,27 @@ func GetUserMarkets() gin.HandlerFunc {
 	}
 }
 
+func GetUserPublicMarkets() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userId, error := strconv.ParseInt(c.Param("userId"),10,64)
+		if error == nil && userId > 0 {
+			marketRepository := database.GetMarketRepository()
+			markets := marketRepository.GetUserMarkets(int(userId))
+			c.AbortWithStatusJSON(http.StatusOK, gin.H{
+				"result": markets,
+				"count":  len(markets),
+			})
+			return
+		} else {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"error": "User ID not set",
+			})
+			return
+		}
+
+	}
+}
+
 func AddMarket() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		marketRepository := database.GetMarketRepository()

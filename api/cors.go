@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 func Cors() gin.HandlerFunc {
@@ -16,6 +17,6 @@ func Cors() gin.HandlerFunc {
 
 func Options() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.AbortWithStatus(200)
+		c.AbortWithStatus(http.StatusOK)
 	}
 }
