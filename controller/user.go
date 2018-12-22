@@ -211,6 +211,7 @@ func LoginUser() gin.HandlerFunc {
 			if userRepository.CreateToken(user.Id, token) {
 				c.JSON(http.StatusAccepted, gin.H{
 					"result": token,
+					"userId": user.Id,
 				})
 				c.Abort()
 				return
