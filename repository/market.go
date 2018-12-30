@@ -45,6 +45,18 @@ func (marketRepository *MarketRepository)GetMarket(marketId int64) (model.Market
 	return market
 }
 
+func (marketRepository *MarketRepository)ExistsGooglePlaceId(googlePlaceId string) (bool) {
+	defer marketRepository.Db.Close()
+	stmt, error := marketRepository.Db.Prepare("SELECT count(*) FROM market WHERE active = 1 and googleplaceid = ?")
+	if error != nil{
+		return false
+	}
+	row := stmt.QueryRow(googlePlaceId)
+	var total int
+	row.Scan(&total)
+	return total > 0
+}
+
 func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFilter) ([]model.MarketExportable) {
 	if marketFilter.Radio > EARTH_RATE {
 		marketFilter.Radio = EARTH_RATE
@@ -109,9 +121,10 @@ func (marketRepository *MarketRepository)Create(market model.MarketExportable) i
 	stmt, error := 	marketRepository.Db.Prepare(
 		`
 		INSERT INTO market
-		(id,name,description,startdate,lat,lon,active,user_id, market_type, flexible, place)
+		(id,name,description,startdate,lat,lon,active,user_id, market_type, flexible, place, googleplaceid)
 		VALUES
-		(null,?,?,?,?,?,?,?,?,?,?)`)
+		(null,?,?,?,?,?,?,?,?,?,?,?)`)
+
 	if error != nil{
 		log.Println(error)
 		return -1
@@ -127,6 +140,7 @@ func (marketRepository *MarketRepository)Create(market model.MarketExportable) i
 		market.Type,
 		market.Flexible,
 		market.Place,
+		market.GooglePlaceId,
 		)
 	if error != nil{
 		log.Println(error)

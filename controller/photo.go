@@ -77,7 +77,7 @@ func AddPhoto() gin.HandlerFunc {
 			c.Abort()
 		}
 
-		photoRepository.Create(photo,marketId)
+		photoRepository.Create(photo,int64(marketId))
 
 		c.AbortWithStatus(http.StatusCreated)
 	}

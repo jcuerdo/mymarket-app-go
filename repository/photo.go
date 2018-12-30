@@ -38,7 +38,7 @@ func (photoRepository *PhotoRepository)GetMarketPhoto(market int) (model.Photo) 
 	}
 }
 
-func (photoRepository *PhotoRepository)Create(photo model.Photo,marketId int) (bool) {
+func (photoRepository *PhotoRepository)Create(photo model.Photo,marketId int64) (bool) {
 	stmt, error := 	photoRepository.Db.Prepare(
 		`
 		INSERT INTO photo
