@@ -18,6 +18,7 @@ func GetMarkets() gin.HandlerFunc {
 		marketFilter.Lon, _ = strconv.ParseFloat(c.Query("lon"),64)
 		marketFilter.Radio, _ = strconv.ParseFloat(c.Query("radio"),64)
 		marketFilter.Page, _ = strconv.ParseInt(c.Query("page"),10,64)
+		marketFilter.Privacy = c.Query("privacy")
 
 		marketRepository := database.GetMarketRepository()
 		markets := marketRepository.GetMarkets(marketFilter)

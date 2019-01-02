@@ -66,12 +66,22 @@ func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFil
 		marketFilter.Radio = 0
 	}
 
+	place := "('INDOOR','OUTDOOR','PUBLIC')"
+
+	if marketFilter.Privacy == "public" {
+		place = "('PUBLIC')"
+	}
+
+	if marketFilter.Privacy == "private" {
+		place = "('INDOOR','OUTDOOR')"
+	}
+
 	maxlat := marketFilter.Lat + rad2deg(marketFilter.Radio/EARTH_RATE)
 	minlat := marketFilter.Lat - rad2deg(marketFilter.Radio/EARTH_RATE)
 	maxlon := marketFilter.Lon + rad2deg(math.Asin(marketFilter.Radio/EARTH_RATE) / math.Cos(deg2rad(marketFilter.Lat)))
 	minlon := marketFilter.Lon - rad2deg(math.Asin(marketFilter.Radio/EARTH_RATE) / math.Cos(deg2rad(marketFilter.Lat)))
 
-	stmt, error := 	marketRepository.Db.Prepare(`
+	stmt, error := 	marketRepository.Db.Prepare(fmt.Sprintf(`
 		SELECT
 			id,user_id,name,description,startdate,lat, lon, market_type, flexible, place
 		FROM
@@ -81,9 +91,12 @@ func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFil
 			lat <= ?   AND
 			lat >= ?   AND
 			lon <= ?   AND
-			lon >= ?
+			lon >= ?   AND
+			place in %s
 		LIMIT ?,?
-			`)
+			`, place))
+
+
 	if error != nil{
 		log.Println(error)
 		return []model.MarketExportable{}
