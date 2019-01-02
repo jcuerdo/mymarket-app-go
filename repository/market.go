@@ -9,8 +9,8 @@ import (
 )
 
 const EARTH_RATE  =  6371
-const RADIO  =  180
-const MAX_RESULTS  =  5
+const RADIO  =  100
+const MAX_RESULTS  =  15
 
 type MarketRepository struct {
 	Db *sql.DB
