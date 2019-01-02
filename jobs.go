@@ -159,16 +159,20 @@ func savePlace(place Place) {
 	id := marketRepository.Create(market)
 	if id > 0 {
 		fmt.Printf("Market imported with id %d \n", id)
-		photo := model.Photo{
-			Content: place.Image,
+
+		if place.Image != "" {
+			photo := model.Photo{
+				Content: place.Image,
+			}
+			fmt.Println("Import photo")
+			created := photoRepository.Create(photo, id)
+			if created {
+				fmt.Printf("Photo imported \n")
+			} else {
+				fmt.Println("Fail importing market")
+			}
 		}
-		fmt.Println("Import photo")
-		created := photoRepository.Create(photo, id)
-		if created {
-			fmt.Printf("Photo imported \n")
-		} else {
-			fmt.Println("Fail importing market")
-		}
+
 	} else {
 		fmt.Println("Fail importing market")
 	}

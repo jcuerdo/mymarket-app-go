@@ -34,14 +34,14 @@ func (marketRepository *MarketRepository)GetUserMarkets(user int) ([]model.Marke
 
 func (marketRepository *MarketRepository)GetMarket(marketId int64) (model.MarketExportable) {
 	defer marketRepository.Db.Close()
-	stmt, error := marketRepository.Db.Prepare("SELECT id,user_id,name,description,startdate,lat, lon, market_type, flexible, place FROM market WHERE active = 1 and id = ?")
+	stmt, error := marketRepository.Db.Prepare("SELECT id,user_id,name,description,startdate,lat, lon, market_type, flexible, place, googleplaceid FROM market WHERE active = 1 and id = ?")
 	if error != nil{
 		log.Println(error)
 		return model.MarketExportable{}
 	}
 	row := stmt.QueryRow(marketId)
 	var market model.MarketExportable
-	row.Scan(&market.Id, &market.UserId, &market.Name, &market.Description, &market.Date, &market.Lat, &market.Lon, &market.Type, &market.Flexible, &market.Place)
+	row.Scan(&market.Id, &market.UserId, &market.Name, &market.Description, &market.Date, &market.Lat, &market.Lon, &market.Type, &market.Flexible, &market.Place, &market.GooglePlaceId)
 	return market
 }
 
