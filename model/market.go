@@ -13,6 +13,7 @@ type Market struct {
 	Date        string         `json:"startdate"`
 	Lat         float32        `json:"lat"`
 	Lon         float32        `json:"lon"`
+	GooglePlaceId 	string     `json:"google_place_id"`
 }
 
 type MarketExportable struct {

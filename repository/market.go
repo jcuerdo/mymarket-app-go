@@ -17,7 +17,7 @@ type MarketRepository struct {
 }
 
 func (marketRepository *MarketRepository)GetUserMarkets(user int) ([]model.MarketExportable) {
-	stmt, error := 	marketRepository.Db.Prepare("SELECT id,user_id,name,description,startdate,lat, lon, market_type, flexible, place FROM market WHERE active = 1 and user_id = ?")
+	stmt, error := 	marketRepository.Db.Prepare("SELECT id,user_id,name,description,startdate,lat, lon, market_type, flexible, place, googleplaceid FROM market WHERE active = 1 and user_id = ?")
 	if error != nil{
 		log.Println(error)
 		return []model.MarketExportable{}
@@ -83,7 +83,7 @@ func (marketRepository *MarketRepository)GetMarkets(marketFilter model.MarketFil
 
 	stmt, error := 	marketRepository.Db.Prepare(fmt.Sprintf(`
 		SELECT
-			id,user_id,name,description,startdate,lat, lon, market_type, flexible, place
+			id,user_id,name,description,startdate,lat, lon, market_type, flexible, place , googleplaceid
 		FROM
 			market
 		WHERE
@@ -279,7 +279,7 @@ func parseRows(rows *sql.Rows, error error) []model.MarketExportable {
 }
 func parseRow(rows *sql.Rows) (model.MarketExportable, error) {
 	var market model.Market
-	err := rows.Scan(&market.Id, &market.UserId, &market.Name, &market.Description, &market.Date, &market.Lat, &market.Lon, &market.Type, &market.Flexible, &market.Place)
+	err := rows.Scan(&market.Id, &market.UserId, &market.Name, &market.Description, &market.Date, &market.Lat, &market.Lon, &market.Type, &market.Flexible, &market.Place, &market.GooglePlaceId)
 	if err != nil{
 		log.Println(err)
 	}
@@ -295,6 +295,7 @@ func parseRow(rows *sql.Rows) (model.MarketExportable, error) {
 		Date : market.Date,
 		Lat : market.Lat,
 		Lon : market.Lon,
+		GooglePlaceId : market.GooglePlaceId,
 	}
 
 	return marketExportable, err
