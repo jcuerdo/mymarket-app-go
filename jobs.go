@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	config2 "github.com/jcuerdo/mymarket-app-go/config"
 	"github.com/jcuerdo/mymarket-app-go/database"
 	"github.com/jcuerdo/mymarket-app-go/model"
 	"github.com/polds/imgbase64"
@@ -42,69 +43,53 @@ type Places struct {
 	NextUrlToken  string `json:"next_page_token"`
 }
 
-const PLACES_URL = "https://maps.googleapis.com/maps/api/place/textsearch/json?key=AIzaSyDlRrMhhZXm-uhLM6XYAa4EWKdqgDSPPQk&query=%s"
-const PLACES_URL_NEXT = "https://maps.googleapis.com/maps/api/place/textsearch/json?key=AIzaSyDlRrMhhZXm-uhLM6XYAa4EWKdqgDSPPQk&pagetoken=%s"
-const PHOTO_URL = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&key=AIzaSyDlRrMhhZXm-uhLM6XYAa4EWKdqgDSPPQk&photoreference=%s"
+const PLACES_URL = "https://maps.googleapis.com/maps/api/place/textsearch/json?key=%s&query=%s"
+const PLACES_URL_NEXT = "https://maps.googleapis.com/maps/api/place/textsearch/json?key=%s&pagetoken=%s"
+const PHOTO_URL = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&key=%s&photoreference=%s"
+const PARAMETERS_FILE = "parameters.yml"
 
-var maxImports = 500
+var maxHttpRequests int
+var totalImported = 0
+var config config2.Config
 
 func main() {
 
-	searches := []string{
-		"mercadillo%20en%20espa%C3%B1a",
-		"mercadillo%20en%20barcelona",
-		"mercadillo%20en%20madrid",
-		"mercadillo%20en%asturias",
-		"mercadillo%20in%20spain",
-		"mercadillo%20in%20asturias",
-		"mercadillo%20in%20barcelona",
-		"mercadillo%20in%asturias",
-		"mercado%20en%20espa%C3%B1a",
-		"mercado%20en%20barcelona",
-		"mercado%20en%20madrid",
-		"mercado%20en%asturias",
-		"mercado%20in%20spain",
-		"mercado%20in%20barcelona",
-		"mercado%20in%20madrid",
-		"mercado%20in%20asturias",
-		"mercadillo%20solidario%en%españa",
-		"mercadillo%20solidario%en%barcelona",
-		"mercadillo%20solidario%en%madrid",
-		"mercadillo%20solidario%en%asturias",
-		"mercadillo%20benefico%en%españa",
-		"mercadillo%20benefico%en%barcelona",
-		"mercadillo%20benefico%en%madrid",
-		"mercadillo%20benefico%en%asturias",
-	}
+	loader := config2.Loader{PARAMETERS_FILE}
+	config = loader.Load()
+	maxHttpRequests = config.MaxHttpRequests
+
 
 	wg := sync.WaitGroup{}
-	for _ , search := range searches {
-		search := url.PathEscape(search)
-		fmt.Println("Searching url: " + fmt.Sprintf(PLACES_URL, search))
-		importPlaces(fmt.Sprintf(PLACES_URL, search), &wg)
+	for _ , search := range config.PlacesQuerys {
+		search := url.QueryEscape(search)
+		importPlaces(fmt.Sprintf(PLACES_URL, config.ApiKey, search), &wg)
 	}
 	wg.Wait()
 
-	fmt.Printf("Maximum is now %d", maxImports)
+	fmt.Printf("%d markets imported", totalImported)
 
 }
 
 func importPlaces(url string, wg *sync.WaitGroup) {
 	places := getPlacesFromUrl(url)
-	importMorePlaces(fmt.Sprintf(PLACES_URL_NEXT, places.NextUrlToken), wg)
+	if places.NextUrlToken != "" {
+		importMorePlaces(fmt.Sprintf(PLACES_URL_NEXT, config.ApiKey, places.NextUrlToken), wg)
+	}
 	storePlaces(places)
 }
 
 func importMorePlaces(url string, wg *sync.WaitGroup) {
-	if maxImports > 0 {
-		maxImports--
+	if maxHttpRequests > 0 {
+		maxHttpRequests--
 	} else {
 		return
 	}
 
 	wg.Add(1)
 	places := getPlacesFromUrl(url)
-	importMorePlaces(fmt.Sprintf(PLACES_URL_NEXT, places.NextUrlToken), wg)
+	if places.NextUrlToken != "" {
+		importMorePlaces(fmt.Sprintf(PLACES_URL_NEXT, config.ApiKey, places.NextUrlToken), wg)
+	}
 	storePlaces(places)
 	wg.Done()
 }
@@ -122,6 +107,7 @@ func storePlaces(places Places) {
 }
 
 func getPlacesFromUrl(url string) Places {
+	fmt.Println("Getting url: " + url)
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Fatal(err)
@@ -134,7 +120,12 @@ func getPlacesFromUrl(url string) Places {
 		if len(place.Photos) <= 0 {
 			continue
 		}
-		places.Places[key].Image = imgbase64.FromRemote(fmt.Sprintf(PHOTO_URL, place.Photos[0].Reference))
+		if existsPlace(place){
+			continue
+		}
+		places.Places[key].Image = imgbase64.FromRemote(fmt.Sprintf(PHOTO_URL, config.ApiKey, place.Photos[0].Reference))
+		maxHttpRequests--
+
 	}
 	return places
 }
@@ -158,6 +149,7 @@ func savePlace(place Place) {
 	fmt.Println(market)
 	id := marketRepository.Create(market)
 	if id > 0 {
+		totalImported++
 		fmt.Printf("Market imported with id %d \n", id)
 
 		if place.Image != "" {
