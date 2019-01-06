@@ -47,7 +47,7 @@ func (marketRepository *MarketRepository)GetMarket(marketId int64) (model.Market
 
 func (marketRepository *MarketRepository)ExistsGooglePlaceId(googlePlaceId string) (bool) {
 	defer marketRepository.Db.Close()
-	stmt, error := marketRepository.Db.Prepare("SELECT count(*) FROM market WHERE active = 1 and googleplaceid = ?")
+	stmt, error := marketRepository.Db.Prepare("SELECT count(*) FROM market WHERE googleplaceid = ?")
 	if error != nil{
 		return false
 	}
