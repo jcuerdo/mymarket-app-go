@@ -54,5 +54,6 @@ type UserExportablePublic struct {
 }
 
 type UserToken struct {
+	Email   sql.NullString 	`json:"email"`
 	FirebaseToken   sql.NullString 	`json:"firebase_token"`
 }

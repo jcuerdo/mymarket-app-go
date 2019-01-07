@@ -9,18 +9,24 @@ import (
 
 var serverKey = "AAAAykf79Vw:APA91bHxXCh8mee1m8ycjrVbF8PsnewZe0ZF5r3DLMpyyTstOrbYo5lIXxX4e9GX1VqBTM8vTMw6o_I3yZymXwnM_MINecGFSaBd65ar7qKDH5-4KDFseu6eHExVbl48WKfgQvGt0GIE"
 
+
 type FireBase struct {
 	serverKey string
 }
 
-func NewFireBaseService() (FireBase){
+func NewFireBaseNotificator() (Notificator){
 	return FireBase{serverKey}
 }
 
-func (fireBase *FireBase) NotifyComment(ids []string, comment model.Comment) (bool) {
+func (fireBase FireBase) NotifyComment(users []model.UserToken, comment model.Comment) (bool) {
 	data := map[string]string{
 		"msg": comment.Content,
 		"marketID" : strconv.Itoa(comment.MarketId),
+	}
+
+	var ids = make([]string, 0)
+	for _, user := range users {
+		ids = append(ids, user.FirebaseToken.String)
 	}
 
 	firebaseClient := fcm.NewFcmClient(fireBase.serverKey)

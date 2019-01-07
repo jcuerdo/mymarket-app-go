@@ -31,11 +31,11 @@ func (userRepository *UserRepository) GetUser(email string, password string) (mo
 	return model.User{}
 }
 
-func (userRepository *UserRepository) GetUserTokensInvolvedInMarket(marketId int) ([]string) {
-	var result = make([]string, 0)
+func (userRepository *UserRepository) GetUserTokensInvolvedInMarket(marketId int) ([]model.UserToken) {
+	var result = make([]model.UserToken, 0)
 	stmt, error := userRepository.Db.Prepare(
 		`
-			SELECT DISTINCT(firebase_token)
+			SELECT DISTINCT(firebase_token), email
 			FROM user
 			LEFT JOIN comment on user.id = comment.user_id
 			LEFT JOIN assistance on user.id = assistance.user_id
@@ -53,7 +53,7 @@ func (userRepository *UserRepository) GetUserTokensInvolvedInMarket(marketId int
 		for rows.Next() {
 			user, error := parseUserTokenRow(rows)
 			if error == nil {
-				result = append(result, user.FirebaseToken.String)
+				result = append(result, user)
 			} else{
 				log.Println(error)
 			}
@@ -65,10 +65,10 @@ func (userRepository *UserRepository) GetUserTokensInvolvedInMarket(marketId int
 	return result
 }
 
-func (userRepository *UserRepository) GetUserTokenMarketOwner(marketId int) (string) {
+func (userRepository *UserRepository) GetUserTokenMarketOwner(marketId int) (model.UserToken) {
 	stmt, error := userRepository.Db.Prepare(
 		`
-			SELECT DISTINCT(firebase_token)
+			SELECT DISTINCT(firebase_token), email
 			FROM user
 			LEFT JOIN market on user.id = market.user_id
 			WHERE market.id=?;
@@ -77,7 +77,7 @@ func (userRepository *UserRepository) GetUserTokenMarketOwner(marketId int) (str
 
 	if error != nil {
 		log.Println(error)
-		return ""
+		return model.UserToken{}
 	}
 
 	rows, error := stmt.Query(marketId)
@@ -85,7 +85,7 @@ func (userRepository *UserRepository) GetUserTokenMarketOwner(marketId int) (str
 		for rows.Next() {
 			user, error := parseUserTokenRow(rows)
 			if error == nil {
-				return user.FirebaseToken.String
+				return user
 			} else{
 				log.Println(error)
 			}
@@ -93,7 +93,7 @@ func (userRepository *UserRepository) GetUserTokenMarketOwner(marketId int) (str
 	} else {
 		log.Println(error)
 	}
-	return ""
+	return model.UserToken{}
 }
 
 func (userRepository *UserRepository) GetUserById(id int) (model.User) {
@@ -245,7 +245,7 @@ func parseUserRow(row *sql.Row) (model.User, error) {
 
 func parseUserTokenRow(row *sql.Rows) (model.UserToken, error) {
 	var usertoken model.UserToken
-	err := row.Scan(&usertoken.FirebaseToken)
+	err := row.Scan(&usertoken.FirebaseToken, &usertoken.Email)
 
 	if err != nil {
 		log.Println(err)

@@ -77,12 +77,10 @@ func AddComment() gin.HandlerFunc {
 				owner := userRepository.GetUserTokenMarketOwner(comment.MarketId)
 				ids = append(ids, owner)
 
-				firebaseService := service.NewFireBaseService()
-				firebaseService.NotifyComment(ids, comment)
+				notificationService := service.NewNotificatorService()
+				notificationService.NotifyCommentToAll(ids, comment)
 
 				c.AbortWithStatus(http.StatusOK)
-
-
 			} else {
 				c.AbortWithStatus(http.StatusServiceUnavailable)
 			}
