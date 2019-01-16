@@ -18,3 +18,7 @@ func (email Email) NotifyComment(ids []model.UserToken, comment model.Comment) (
 	return true
 }
 
+func (email Email) NotifyAssistance(ids []model.UserToken, assistance model.Assistance) (bool) {
+
+	return true
+}

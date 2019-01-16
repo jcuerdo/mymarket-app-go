@@ -44,3 +44,28 @@ func (fireBase FireBase) NotifyComment(users []model.UserToken, comment model.Co
 	return true
 }
 
+
+func (fireBase FireBase) NotifyAssistance(users []model.UserToken, assistance model.Assistance) (bool) {
+	data := map[string]string{
+		"marketID" : strconv.Itoa(assistance.MarketId),
+	}
+
+	var ids = make([]string, 0)
+	for _, user := range users {
+		ids = append(ids, user.FirebaseToken.String)
+	}
+
+	firebaseClient := fcm.NewFcmClient(fireBase.serverKey)
+	firebaseClient.NewFcmRegIdsMsg(ids, data)
+	notificationPayload := &fcm.NotificationPayload{Title:"Someone is going to the market", Sound:"default",Color:"#0000FF"}
+	firebaseClient.SetNotificationPayload(notificationPayload)
+	resp, error := firebaseClient.Send()
+
+	if error != nil {
+		log.Println(error)
+	}
+
+	resp.PrintResults()
+
+	return true
+}

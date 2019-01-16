@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/jcuerdo/mymarket-app-go/service"
 	"net/http"
 	"github.com/jcuerdo/mymarket-app-go/database"
 	"io/ioutil"
@@ -61,7 +62,17 @@ func AddAssistance() gin.HandlerFunc {
 			assistance.UserId = userId.(int)
 			assistanceRepository := database.GetAssistanceRepository()
 			if assistanceRepository.Create(assistance) {
+
+				userRepository := database.GetUserRepository()
+				ids := userRepository.GetUserTokensInvolvedInMarket(assistance.MarketId)
+				owner := userRepository.GetUserTokenMarketOwner(assistance.MarketId)
+				ids = append(ids, owner)
+
+				notificationService := service.NewNotificatorService()
+				notificationService.NotifyAssistanceToAll(ids, assistance)
+
 				c.AbortWithStatus(http.StatusCreated)
+
 			} else {
 				c.AbortWithStatus(http.StatusNotModified)
 			}
