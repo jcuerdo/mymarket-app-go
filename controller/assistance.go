@@ -66,7 +66,15 @@ func AddAssistance() gin.HandlerFunc {
 				userRepository := database.GetUserRepository()
 				ids := userRepository.GetUserTokensInvolvedInMarket(assistance.MarketId)
 				owner := userRepository.GetUserTokenMarketOwner(assistance.MarketId)
-				ids = append(ids, owner)
+				addOwner := true
+				for _, id := range ids {
+					if id.FirebaseToken == owner.FirebaseToken {
+						addOwner = false
+					}
+				}
+				if addOwner {
+					ids = append(ids, owner)
+				}
 
 				notificationService := service.NewNotificatorService()
 				notificationService.NotifyAssistanceToAll(ids, assistance)

@@ -242,8 +242,11 @@ func SendFirebaseToken() gin.HandlerFunc {
 }
 
 func generateToken() string {
-	uuid := uuid.NewV4().String()
-	uuid = strconv.Itoa(int(time.Now().Second())) + strings.Replace(uuid, "-" , "" ,-1) + strconv.Itoa(int(time.Now().Nanosecond()))
+	uuid, err := uuid.NewV4()
+	if err != nil {
+		return ""
+	}
+	return strconv.Itoa(int(time.Now().Second())) + strings.Replace(uuid.String(), "-" , "" ,-1) + strconv.Itoa(int(time.Now().Nanosecond()))
 
-	return uuid
+	
 }
